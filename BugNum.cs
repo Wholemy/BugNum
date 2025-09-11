@@ -1,4 +1,4 @@
-﻿namespace Wholemy {
+namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
 		public BugInt Venom;
@@ -298,39 +298,24 @@
 			if (S <= 0) return 0;
 			var SS = S.Numer;
 			var VV = S.Venom;
-		Next:
-			BugInt Above = SS / VV;
-			BugInt AboveSquad = Above * Above;
-			BugInt Below = SS / (VV * 10);
-			BugInt BelowSquad = Below * Below;
-			while (BelowSquad > S) {
-				Above = Below;
-				AboveSquad = BelowSquad;
-				Below /= 10;
-				BelowSquad = Below * Below;
+			var Ret = SS / VV;
+			if (Ret.Length == 1) {
+				var V = (uint)Ret;
+				var T = V;
+				var X = V / 2u;
+				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+				Ret = T;
+			} else {
+				var V = Ret;
+				var T = V;
+				var X = V / 2u;
+				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+				Ret = T;
 			}
-			if (BelowSquad != S) {
-			Nex:
-				var Dif = Above - Below;
-				if (Dif > 1) {
-					var Next = Dif / 2 + Below;
-					var NextSquad = Next * Next;
-					if (NextSquad > S) {
-						Above = Next;
-						AboveSquad = NextSquad;
-						goto Nex;
-					} else if (NextSquad <= S) {
-						Below = Next;
-						BelowSquad = NextSquad;
-						if (NextSquad != S) goto Nex;
-					}
-				}
-			}
-			BugInt Ret = Below;
 			var VenomInt = ((BugNum)VV);
 			var VebugInt = VenomInt;
 			var DepDep = 17;
-			while (DepDep-- >= 0) {
+			while (--DepDep >= 0) {
 				Ret *= 10;
 				VenomInt /= 100;
 				VebugInt /= 10;
@@ -346,7 +331,43 @@
 			return new BugNum(Ret, VV);
 		}
 		#endregion
-
+		#region #method# SqrtD(S,D) 
+		public static BugNum SqrtD(BugNum S,int D) {
+			if (S <= 0) return 0;
+			var SS = S.Numer;
+			var VV = S.Venom;
+			var Ret = SS / VV;
+			if (Ret.Length == 1) {
+				var V = (uint)Ret;
+				var T = V;
+				var X = V / 2u;
+				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+				Ret = T;
+			} else {
+				var V = Ret;
+				var T = V;
+				var X = V / 2u;
+				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+				Ret = T;
+			}
+			var VenomInt = ((BugNum)VV);
+			var VebugInt = VenomInt;
+			while (--D >= 0) {
+				Ret *= 10;
+				VenomInt /= 100;
+				VebugInt /= 10;
+				var SSS = (BugInt)(SS / VenomInt);
+				var A = 5u;
+				var B = 3u;
+				var C = 1u;
+				var M = 0u;
+				for (var I = 0; I < 4; I++) { var MA = M + A; var RM = Ret + MA; if ((RM * RM) < SSS) { M = MA; } A = B; B = C; }
+				Ret += M;
+			}
+			VV = (BugInt)(VV / VebugInt);
+			return new BugNum(Ret, VV);
+		}
+		#endregion
 		public static bool operator ==(BugNum L, BugNum R) {
 			return L.Numer * R.Venom == R.Numer * L.Venom;
 		}
