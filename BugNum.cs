@@ -290,90 +290,61 @@ namespace Wholemy {
 		#endregion
 		#region #method# Sqrt(X, Y) 
 		public static BugNum Sqrt(BugNum X, BugNum Y) {
-			return Sqrt(X * X + Y * Y);
+			return SqrtDepth(X * X + Y * Y, 17);
 		}
 		#endregion
-		#region #method# Sqrt(S) 
-		public static BugNum Sqrt(BugNum S) {
+		#region #method# Sqrt(X, Y, D) 
+		public static BugNum Sqrt(BugNum X, BugNum Y, int D) {
+			return SqrtDepth(X * X + Y * Y, D);
+		}
+		#endregion
+		#region #method# SqrtDebug(S, D) 
+		public static BugNum SqrtDebug(BugNum S,int D) {
 			if (S <= 0) return 0;
 			var SS = S.Numer;
 			var VV = S.Venom;
 			var Ret = SS / VV;
-			if (Ret.Length == 1) {
-				var V = (uint)Ret;
-				if (V > 1) {
-					var T = V;
-					var X = V / 2u;
-					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-					Ret = T;
-				}
-			} else {
-				var V = Ret;
-				if (V > 1) {
-					var T = V;
-					var X = V / 2u;
-					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-					Ret = T;
-				}
+			var V = Ret;
+			if (V > 1) {
+				var T = V;
+				var X = V / 2u;
+				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+				Ret = T;
 			}
 			var VenomInt = ((BugNum)VV);
-			var VebugInt = VenomInt;
-			var DepDep = 17;
-			while (--DepDep >= 0) {
-				Ret *= 10;
-				VenomInt /= 100;
-				VebugInt /= 10;
-				var SSS = (BugInt)(SS / VenomInt);
-				var A = 5u;
-				var B = 3u;
-				var C = 1u;
-				var M = 0u;
-				for (var I = 0; I < 4; I++) { var MA = M + A; var RM = Ret + MA; if ((RM * RM) < SSS) { M = MA; } A = B; B = C; }
-				Ret += M;
-			}
-			VV = (BugInt)(VV / VebugInt);
-			return new BugNum(Ret, VV);
-		}
-		#endregion
-		#region #method# SqrtD(S,D) 
-		public static BugNum SqrtD(BugNum S, int D) {
-			if (S <= 0) return 0;
-			var SS = S.Numer;
-			var VV = S.Venom;
-			var Ret = SS / VV;
-			if (Ret.Length == 1) {
-				var V = (uint)Ret;
-				if (V > 1) {
-					var T = V;
-					var X = V / 2u;
-					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-					Ret = T;
-				}
-			} else {
-				var V = Ret;
-				if (V > 1) {
-					var T = V;
-					var X = V / 2u;
-					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-					Ret = T;
-				}
-			}
-			var VenomInt = ((BugNum)VV);
-			var VebugInt = VenomInt;
+			var VVV = BugInt.Pow(10, D);
 			while (--D >= 0) {
 				Ret *= 10;
 				VenomInt /= 100;
-				VebugInt /= 10;
 				var SSS = (BugInt)(SS / VenomInt);
 				var A = 5u;
 				var B = 3u;
 				var C = 1u;
 				var M = 0u;
-				for (var I = 0; I < 4; I++) { var MA = M + A; var RM = Ret + MA; if ((RM * RM) < SSS) { M = MA; } A = B; B = C; }
+				for (var I = 0; I < 4; I++) {
+					var MA = M + A;
+					var RM = Ret + MA;
+					if ((RM * RM) <= SSS) { M = MA; }
+					A = B; B = C;
+				}
 				Ret += M;
 			}
-			VV = (BugInt)(VV / VebugInt);
-			return new BugNum(Ret, VV);
+			return new BugNum(Ret, VVV);
+		}
+		#endregion
+		#region #method# SqrtDepth(S, D) 
+		public static BugNum SqrtDepth(BugNum S, int D) {
+			if (S <= 0) return 0;
+			var SS = S.Numer;
+			var VV = S.Venom;
+			var SV = SS * BugInt.Pow(10, D * 2) / VV;
+			if (SV > 1) {
+				var T = SV;
+				var X = SV / 2u;
+				while (T != X) { T = X; X = (X + (SV / X)) / 2u; }
+				SS = T;
+			}
+			return new BugNum(SS, BugInt.Pow(10, D));
 		}
 		#endregion
 		public static bool operator ==(BugNum L, BugNum R) {
@@ -413,7 +384,7 @@ namespace Wholemy {
 		/// <param name="AR">Корень четверти от 0.0 до 4.0 отрицательная в обратную сторону)</param>
 		public static bool Rotate(BugNum CX, BugNum CY, ref BugNum BX, ref BugNum BY, BugNum AR, int ED = 56) {
 			if (AR == 0) return false;
-			var Len = Sqrt(CX - BX, CY - BY);
+			var Len = Sqrt(CX - BX, CY - BY, ED);
 			if (Len == 0) return false;
 			BugInt R = (BugInt)AR;
 			if (AR < 0) { AR = 1 + (AR - R); R %= 4; R += 3; } else { AR -= R; R %= 4; }
@@ -423,14 +394,14 @@ namespace Wholemy {
 			else if (R == 3) { MX = BY - CY + CX; MY = CX - BX + CY; } // 270
 			var EX = BX; var EY = BY; BX = MX; BY = MY;
 			if (AR > 0 && R >= 0 && R < 3) { EX = CY - MY + CX; EY = MX - CX + CY; } // 90
-			while (AR > 0 && AR < 1 && ED-- > 0) {
-				var L = Sqrt(MX - EX, MY - EY);
+			while (AR > 0 && AR < 1 && ED > 0) {
+				var L = Sqrt(MX - EX, MY - EY, ED);
 				if (L == 0) break;
 				var ll = L / 2;
 				if (AR < new BugNum(1, 2)) {
 					EX = MX + (EX - MX) / L * ll;
 					EY = MY + (EY - MY) / L * ll;
-					ll = Sqrt(CX - EX, CY - EY);
+					ll = Sqrt(CX - EX, CY - EY, ED);
 					EX = CX + (EX - CX) / ll * Len;
 					EY = CY + (EY - CY) / ll * Len;
 					AR = AR * 2;
@@ -441,18 +412,19 @@ namespace Wholemy {
 				} else {
 					MX = EX + (MX - EX) / L * ll;
 					MY = EY + (MY - EY) / L * ll;
-					ll = Sqrt(CX - MX, CY - MY);
+					ll = Sqrt(CX - MX, CY - MY, ED);
 					MX = CX + (MX - CX) / ll * Len;
 					MY = CY + (MY - CY) / ll * Len;
 					MX = MX.Rnd();
 					MY = MY.Rnd();
 					AR = (AR - new BugNum(1, 2)) * 2; BX = MX; BY = MY;
 				}
+				ED--;
 			}
 			return true;
 		}
 		#endregion
-		#region #method# GetAR(CX, CY, BX, BY, AX, AY) 
+		#region #method# GetAR(CX, CY, BX, BY, AX, AY, ED) 
 		/// <summary>Возвращает корень поворота от 0.0 до 4.0)</summary>
 		/// <param name="CX">Центр по оси X)</param>
 		/// <param name="CY">Центр по оси Y)</param>
@@ -463,21 +435,21 @@ namespace Wholemy {
 		/// <returns>Возвращает корень поворота от 0.0 до 4.0)</returns>
 		/// <exception cref="System.InvalidProgramException">
 		/// Возникает в случае непредусмотренного состояния, требует исправления)</exception>
-		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
-			var BL = Sqrt(CX - BX, CY - BY);
+		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY, int ED = 56) {
+			var BL = Sqrt(CX - BX, CY - BY, ED);
 			if (BL == 0) return 0;
-			var AL = Sqrt(CX - AX, CY - AY);
+			var AL = Sqrt(CX - AX, CY - AY, ED);
 			if (AL == 0) return 0;
 			AX = CX + (AX - CX) / AL * BL;
 			AY = CY + (AY - CY) / AL * BL;
-			AL = Sqrt(CX - AX, CY - AY);
+			AL = Sqrt(CX - AX, CY - AY, ED);
 			var X1 = CY - BY + CX; var Y1 = BX - CX + CY; // 90
 			var X2 = CX - BX + CX; var Y2 = CY - BY + CY; // 180
 			var X3 = BY - CY + CX; var Y3 = CX - BX + CY; // 270
-			var L0 = Sqrt(BX - AX, BY - AY);
-			var L1 = Sqrt(X1 - AX, Y1 - AY);
-			var L2 = Sqrt(X2 - AX, Y2 - AY);
-			var L3 = Sqrt(X3 - AX, Y3 - AY);
+			var L0 = Sqrt(BX - AX, BY - AY, ED);
+			var L1 = Sqrt(X1 - AX, Y1 - AY, ED);
+			var L2 = Sqrt(X2 - AX, Y2 - AY, ED);
+			var L3 = Sqrt(X3 - AX, Y3 - AY, ED);
 			BugNum R = 0, MX = 0, MY = 0, EX = 0, EY = 0;
 			if (L0 < L2 && L0 < L3 && L1 < L2 && L1 <= L3) {
 				R = 0; MX = BX; MY = BY; EX = X1; EY = Y1;
@@ -489,15 +461,15 @@ namespace Wholemy {
 				R = 3; MX = X3; MY = Y3; EX = BX; EY = BY; L1 = L0; L0 = L3;
 			} else { throw new System.InvalidProgramException(); }
 			BugNum AR = 1;
-			while (L0 > 0 && (L2 = Sqrt(MX - EX, MY - EY)) > 0) {
+			while (L0 > 0 && (L2 = Sqrt(MX - EX, MY - EY, ED)) > 0) {
 				AR /= 2;
 				L3 = L2 / 2;
 				BX = MX + (EX - MX) / L2 * L3;
 				BY = MY + (EY - MY) / L2 * L3;
-				L2 = Sqrt(CX - BX, CY - BY);
+				L2 = Sqrt(CX - BX, CY - BY, ED);
 				BX = CX + (BX - CX) / L2 * BL;
 				BY = CY + (BY - CY) / L2 * BL;
-				L3 = Sqrt(AX - BX, AY - BY);
+				L3 = Sqrt(AX - BX, AY - BY, ED);
 				if (L0 < L1) {
 					if (EX == BX && EY == BY) break; if (L1 <= L3) break;
 					EX = BX; EY = BY; L1 = L3;
@@ -505,6 +477,7 @@ namespace Wholemy {
 					if (MX == BX && MY == BY) break; if (L0 <= L3) break;
 					MX = BX; MY = BY; L0 = L3; R += AR;
 				}
+				ED--;
 			}
 			return R;
 		}
