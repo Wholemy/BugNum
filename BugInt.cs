@@ -1,4 +1,4 @@
-﻿namespace Wholemy {
+namespace Wholemy {
 	public struct BugInt {
 		#region #field# Count 
 		/// <summary>
@@ -9,6 +9,14 @@
 		#endregion
 		#region #field# Value 
 		private uint[] Value;
+		#endregion
+		#region #property# Length 
+		public int Length {
+			get {
+				var C = Count;
+				if (C < 0) return -C; return C;
+			}
+		}
 		#endregion
 		#region #new# (#uint #[] Value, #int # Count) 
 		private BugInt(uint[] Value, int Count) {
@@ -575,7 +583,7 @@
 			var RValue = R.Value[RCount - 1];
 			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
 			if (L == R) { M = 0; if (Minus) { return -1; } return 1; }
-			if (L < R) { if (Minus) { M = -L; } else{ M = L; } return 0; }
+			if (L < R) { if (Minus) { M = -L; } else { M = L; } return 0; }
 			var Shift = L.Bit - R.Bit;
 			var Remain = L;
 			var Svalue = R << Shift;
@@ -605,8 +613,10 @@
 		public int Bit {
 			get {
 				var Array = this.Value;
-				var Count = this.Count - 1;
-				if (Count >= 0) return (Count + 1) * 32 - CbitHz(Array[Count]);
+				var Count = this.Count;
+				if(Count<0) Count = -Count;
+				var Index = Count - 1;
+				if (Count > 0) return Count * 32 - CbitHz(Array[Index]);
 				return 0;
 			}
 		}
@@ -1307,6 +1317,52 @@
 		#endregion
 		#region #struct # #implicit operator # (#long # V) 
 		public static implicit operator BugInt(long V) { return new BugInt(V); }
+		#endregion
+		#region #uint # #explicit operator # (#struct # V)
+		public static explicit operator uint(BugInt V) {
+			var C = V.Count;
+			if (C < 0) C = -C;
+			if (C > 0) return V.Value[0];
+			return 0;
+		}
+		#endregion
+		#region #ulong # #explicit operator # (#struct # V)
+		public static explicit operator ulong(BugInt V) {
+			var C = V.Count;
+			if (C < 0) C = -C;
+			var R = 0ul;
+			if (C > 1) { R |= V.Value[1]; R <<= 32; }
+			if (C > 0) R |= V.Value[1];
+			return R;
+		}
+		#endregion
+		#region #uint # #get#[#int # I] 
+		public uint this[int I] {
+			get {
+				var C = this.Count;
+				if (C < 0) C = -C;
+				if (C > I && I >= 0) return this.Value[I];
+				return 0;
+			}
+		}
+		#endregion
+		#region #uint#[] #get# Array 
+		public uint[] Array {
+			get {
+				var C = this.Count;
+				if (C < 0) C = -C;
+				var A = new uint[C];
+				System.Array.Copy(this.Value,A,C);
+				return A;
+			}
+		}
+		#endregion
+		#region #bool# #get# Sign 
+		public bool Sign {
+			get {
+				return this.Count < 0;
+			}
+		}
 		#endregion
 	}
 }
