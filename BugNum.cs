@@ -301,16 +301,20 @@ namespace Wholemy {
 			var Ret = SS / VV;
 			if (Ret.Length == 1) {
 				var V = (uint)Ret;
-				var T = V;
-				var X = V / 2u;
-				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-				Ret = T;
+				if (V > 1) {
+					var T = V;
+					var X = V / 2u;
+					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+					Ret = T;
+				}
 			} else {
 				var V = Ret;
-				var T = V;
-				var X = V / 2u;
-				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-				Ret = T;
+				if (V > 1) {
+					var T = V;
+					var X = V / 2u;
+					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+					Ret = T;
+				}
 			}
 			var VenomInt = ((BugNum)VV);
 			var VebugInt = VenomInt;
@@ -332,23 +336,27 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# SqrtD(S,D) 
-		public static BugNum SqrtD(BugNum S,int D) {
+		public static BugNum SqrtD(BugNum S, int D) {
 			if (S <= 0) return 0;
 			var SS = S.Numer;
 			var VV = S.Venom;
 			var Ret = SS / VV;
 			if (Ret.Length == 1) {
 				var V = (uint)Ret;
-				var T = V;
-				var X = V / 2u;
-				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-				Ret = T;
+				if (V > 1) {
+					var T = V;
+					var X = V / 2u;
+					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+					Ret = T;
+				}
 			} else {
 				var V = Ret;
-				var T = V;
-				var X = V / 2u;
-				while (T > X) { T = X; X = (X + (V / X)) / 2u; }
-				Ret = T;
+				if (V > 1) {
+					var T = V;
+					var X = V / 2u;
+					while (T > X) { T = X; X = (X + (V / X)) / 2u; }
+					Ret = T;
+				}
 			}
 			var VenomInt = ((BugNum)VV);
 			var VebugInt = VenomInt;
