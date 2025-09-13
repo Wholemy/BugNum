@@ -3,34 +3,41 @@ namespace Wholemy {
 		public BugInt Numer;
 		public BugInt Venom;
 		#region #new# (Value) 
-		#region #through# 
-#if TRACE
-		[System.Diagnostics.DebuggerStepThrough]
-#endif
-		#endregion
 		public BugNum(BugNum Value) {
 			BugInt Numer = Value.Numer; BugInt Venom = Value.Venom;
+			BugInt N, V;
+			uint NM = 0, VM = 0, DM = 1000000000;
+			var NumerBound = Numer.Bound;
+			var VenomBound = Venom.Bound;
 			if (Numer != 0 && Venom != 0) {
-				BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
-			Next:
+			NextZero:
 				N = BugInt.DivMod(Numer, DM, out NM);
 				V = BugInt.DivMod(Venom, DM, out VM);
-				if (NM == 0 && VM == 0) { Numer = N; Venom = V; goto Next; } else {
-					while (DM > 10) { DM /= 10; if (NM % DM == 0 && VM % DM == 0) goto Next; }
+				if (NM == 0 && VM == 0) { Numer = N; Venom = V; goto NextZero; } else {
+					while (DM > 10) { DM /= 10; if (NM % DM == 0 && VM % DM == 0) goto NextZero; }
 				}
 			}
+			if (VenomBound > 0) {
+				var Max = BugInt.Pow(10, VenomBound);
+				if (Venom > Max) {
+					var D = Venom / Max;
+					if (D > 1) {
+						Venom /= D;
+						Numer /= D;
+					}
+				}
+			}
+			Venom.Bound = VenomBound;
+			Numer.Bound = NumerBound;
 			//if (Numer != 0 && Venom != 0) Gcd(ref Numer, ref Venom);
 			this.Numer = Numer;
 			this.Venom = Venom;
 		}
 		#endregion
 		#region #new# (Numer, Venom) 
-		#region #through# 
-#if TRACE
-		[System.Diagnostics.DebuggerStepThrough]
-#endif
-		#endregion
 		public BugNum(BugInt Numer, BugInt Venom) {
+			var NumerBound = Numer.Bound;
+			var VenomBound = Venom.Bound;
 			if (Numer != 0 && Venom != 0) {
 				BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
 			Next:
@@ -40,6 +47,18 @@ namespace Wholemy {
 					while (DM > 10) { DM /= 10; if (NM % DM == 0 && VM % DM == 0) goto Next; }
 				}
 			}
+			if (VenomBound > 0) {
+				var Max = BugInt.Pow(10, VenomBound);
+				if (Venom > Max) {
+					var D = Venom / Max;
+					if (D > 1) {
+						Venom /= D;
+						Numer /= D;
+					}
+				}
+			}
+			Venom.Bound = VenomBound;
+			Numer.Bound = NumerBound;
 			//if (Numer != 0 && Venom != 0) Gcd(ref Numer, ref Venom);
 			this.Numer = Numer;
 			this.Venom = Venom;
@@ -290,17 +309,12 @@ namespace Wholemy {
 		#endregion
 		#region #method# Sqrt(X, Y) 
 		public static BugNum Sqrt(BugNum X, BugNum Y) {
-			return SqrtDepth(X * X + Y * Y, 17);
-		}
-		#endregion
-		#region #method# Sqrt(X, Y, D) 
-		public static BugNum Sqrt(BugNum X, BugNum Y, int D) {
-			return SqrtDepth(X * X + Y * Y, D);
+			return Sqrt(X * X + Y * Y);
 		}
 		#endregion
 		#region #method# SqrtDebug(S, D) 
-		public static BugNum SqrtDebug(BugNum S,int D) {
-			if (S <= 0) return 0;
+		public static BugNum SqrtDebug(BugNum S, int D) {
+			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
 			var Ret = SS / VV;
@@ -332,9 +346,14 @@ namespace Wholemy {
 			return new BugNum(Ret, VVV);
 		}
 		#endregion
+		#region #method# SqrtDepth(X, Y, D) 
+		public static BugNum SqrtDepth(BugNum X, BugNum Y, int D) {
+			return SqrtDepth(X * X + Y * Y, D);
+		}
+		#endregion
 		#region #method# SqrtDepth(S, D) 
 		public static BugNum SqrtDepth(BugNum S, int D) {
-			if (S <= 0) return 0;
+			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
 			var SV = SS * BugInt.Pow(10, D * 2) / VV;
@@ -345,6 +364,22 @@ namespace Wholemy {
 				SS = T;
 			}
 			return new BugNum(SS, BugInt.Pow(10, D));
+		}
+		#endregion
+		#region #method# Sqrt(S) 
+		public static BugNum Sqrt(BugNum S) {
+			if (S == 0) return 0; if (S < 0) return 1;
+			var PS = new BugNum(0);
+			PS.Venom.Bound = S.Venom.Bound;
+			PS.Numer.Bound = S.Numer.Bound;
+			var SS = S * 2 / S;
+			var SSS = (SS - (S / SS)) / 2u;
+			while (SSS != PS) {
+				SS -= SSS;
+				PS = SSS;
+				SSS = (SS - (S / SS)) / 2u;
+			}
+			return SS;
 		}
 		#endregion
 		public static bool operator ==(BugNum L, BugNum R) {
