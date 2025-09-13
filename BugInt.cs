@@ -1,5 +1,9 @@
 namespace Wholemy {
 	public struct BugInt {
+		#region #field# Bound 
+		/// <summary>Ограничение для наружных методов, меньше нуля по элементам, больше нуля по десятичным знакам)</summary>
+		public int Bound;
+		#endregion
 		#region #field# Count 
 		/// <summary>
 		/// Количество элементов в массиве, может быть больше чем размер массива,
@@ -19,9 +23,10 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #new# (#uint #[] Value, #int # Count) 
-		private BugInt(uint[] Value, int Count) {
+		private BugInt(uint[] Value, int Count, int Bound) {
 			this.Count = Count;
 			this.Value = Value;
+			this.Bound = Bound;
 		}
 		#endregion
 		#region #new# (#bool # Minus, #uint #[] Value) 
@@ -36,6 +41,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = Minus ? -1 : 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#bool # Reverse, #bool # Minus, #uint #[] Value) 
@@ -50,6 +56,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = Minus ? -1 : 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#uint # Value) 
@@ -61,6 +68,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#int # Value) 
@@ -74,6 +82,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#ulong # Value) 
@@ -91,6 +100,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#long # Value) 
@@ -111,6 +121,7 @@ namespace Wholemy {
 				this.Value = null;
 				this.Count = 0;
 			}
+			this.Bound = 0;
 		}
 		#endregion
 		#region #new# (#string # Value) 
@@ -142,6 +153,7 @@ namespace Wholemy {
 			if (Minus) { Ret = -Ret; }
 			if (Inver) { Ret = ~Ret; }
 			this = Ret;
+			this.Bound = 0;
 		}
 		#endregion
 		#region #method# ToString 
@@ -194,7 +206,7 @@ namespace Wholemy {
 			var Minus = false;
 			if (LCount < 0) { Minus = true; LCount = -LCount; }
 			var LArray = L.Value;
-			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0);
+			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0, L.Bound);
 			var OArray = new uint[LCount + 1];
 			var LIndex = 0;
 			var Muled = ((ulong)LArray[LIndex++]) * R;
@@ -210,18 +222,18 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# * (#struct # L, #int # R) 
 		public static BugInt operator *(BugInt L, int R) {
 			var Minus = false;
 			if (R < 0) { Minus = true; R = -R; }
-			if (R == 1) { if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (R == 1) { if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
-			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0);
+			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0, L.Bound);
 			var OArray = new uint[LCount + 1];
 			var LIndex = 0;
 			var Muled = ((ulong)LArray[LIndex++]) * (uint)R;
@@ -237,7 +249,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# * (#int # L, #struct # R) 
@@ -256,12 +268,12 @@ namespace Wholemy {
 			var Minus = false;
 			if (RCount < 0) { Minus = true; RCount = -RCount; }
 			var RArray = R.Value;
-			if (RCount == 1 && RArray[0] == 1) { if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (RCount == 1 && RArray[0] == 1) { if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LCount == 1 && LArray[0] == 1) return R;
-			if (LCount == 0 || RCount == 0) return new BugInt(null, Minus ? -1 : 0);
+			if (LCount == 0 || RCount == 0) return new BugInt(null, Minus ? -1 : 0, L.Bound);
 			uint[] OArray = null;
 			var OCount = 0;
 			var OMinus = false;
@@ -315,7 +327,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#endregion
@@ -328,7 +340,7 @@ namespace Wholemy {
 			var Minus = false;
 			if (LCount < 0) { Minus = true; LCount = -LCount; }
 			var LArray = L.Value;
-			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0);
+			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0, L.Bound);
 			var OCount = LCount;
 			var OArray = new uint[LCount--];
 			var Remnant = (ulong)LArray[LCount];
@@ -345,7 +357,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# / (#struct # L, #int # R) 
@@ -353,11 +365,11 @@ namespace Wholemy {
 			if (R == 0) { throw new System.DivideByZeroException(); }
 			var Minus = false;
 			if (R < 0) { R = -R; Minus = true; }
-			if (R == 1) { if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (R == 1) { if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
-			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0);
+			if (LCount == 0) return new BugInt(null, Minus ? -1 : 0, L.Bound);
 			var OCount = LCount;
 			var OArray = new uint[LCount--];
 			var Remnant = (ulong)LArray[LCount];
@@ -374,7 +386,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# / (#struct # L, #struct # R) 
@@ -395,7 +407,7 @@ namespace Wholemy {
 			if (R == 0) { throw new System.DivideByZeroException(); }
 			var Minus = false;
 			if (R < 0) { Minus = true; R = -R; }
-			if (R == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (R == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			if (LCount == 0) { M = 0; return 0; }
@@ -418,7 +430,7 @@ namespace Wholemy {
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
 			M = (int)Remnant;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #method# DivMod(#struct # L, #uint # R, #uint # M) 
@@ -449,7 +461,7 @@ namespace Wholemy {
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
 			M = (uint)Remnant;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #method# DivMod(#struct # L, #struct # R, #struct # M) 
@@ -459,7 +471,7 @@ namespace Wholemy {
 			var RArray = R.Value;
 			if (RCount == 0) { throw new System.DivideByZeroException(); }
 			var RValue = RArray[RCount - 1];
-			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			var OCount = 0;
 			uint[] OArray = null;
 			var LCount = L.Count;
@@ -467,7 +479,7 @@ namespace Wholemy {
 			if (LCount == 0) { M = 0; return 0; }
 			var LArray = L.Value;
 			if (RCount == 1) {
-				if (LCount == 1 && LArray[0] < R) { if (Minus) { M = new BugInt(L.Value, -L.Count); } else { M = L; } return 0; }
+				if (LCount == 1 && LArray[0] < R) { if (Minus) { M = new BugInt(L.Value, -L.Count, L.Bound); } else { M = L; } return 0; }
 				OCount = LCount--;
 				OArray = new uint[OCount];
 				var Remnant = (ulong)LArray[LCount];
@@ -485,15 +497,16 @@ namespace Wholemy {
 				if (OCount == 0) OArray = null;
 				if (L.Count < 0) OCount = -OCount;
 				M = new BugInt((uint)Remnant);
-				return new BugInt(OArray, OCount);
+				M.Bound = L.Bound;
+				return new BugInt(OArray, OCount, L.Bound);
 			} else {
-				if (LCount < RCount) { if (Minus) { M = new BugInt(L.Value, -L.Count); } else { M = L; } return 0; }
+				if (LCount < RCount) { if (Minus) { M = new BugInt(L.Value, -L.Count, L.Bound); } else { M = L; } return 0; }
 				if (LCount == RCount) {
 					OCount = LCount;
 					while (--OCount >= 0) {
 						var LV = LArray[OCount];
 						var RV = RArray[OCount];
-						if (LV < RV) { if (Minus) { M = new BugInt(L.Value, -L.Count); } else { M = L; } return 0; }
+						if (LV < RV) { if (Minus) { M = new BugInt(L.Value, -L.Count, L.Bound); } else { M = L; } return 0; }
 						if (LV > RV) break;
 					}
 				}
@@ -569,10 +582,10 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (LCount == 0) LArray = null;
 			if (Minus) LCount = -LCount;
-			M = new BugInt(LArray, LCount);
+			M = new BugInt(LArray, LCount, L.Bound);
 			if (OCount == 0) OArray = null;
 			if (Minus) OCount = -OCount;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#endregion
@@ -581,7 +594,7 @@ namespace Wholemy {
 			var RCount = R.Count;
 			var Minus = false; if (RCount < 0) { RCount = -RCount; Minus = true; }
 			var RValue = R.Value[RCount - 1];
-			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
+			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count, L.Bound); } return L; }
 			if (L == R) { M = 0; if (Minus) { return -1; } return 1; }
 			if (L < R) { if (Minus) { M = -L; } else { M = L; } return 0; }
 			var Shift = L.Bit - R.Bit;
@@ -594,6 +607,8 @@ namespace Wholemy {
 				Svalue >>= 1;
 			}
 			M = Remain;
+			M.Bound = L.Bound;
+			Result.Bound = L.Bound;
 			return Result;
 		}
 		#endregion
@@ -652,7 +667,7 @@ namespace Wholemy {
 					while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 					if (OCount == 0) OArray = null;
 				}
-				return new BugInt(OArray, OCount);
+				return new BugInt(OArray, OCount, L.Bound);
 			}
 			return L;
 		}
@@ -688,7 +703,7 @@ namespace Wholemy {
 					while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 					if (OCount == 0) OArray = null;
 				}
-				return new BugInt(OArray, OCount);
+				return new BugInt(OArray, OCount, L.Bound);
 			}
 			return L;
 		}
@@ -842,7 +857,7 @@ namespace Wholemy {
 				OCount++;
 			}
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# & 
@@ -858,7 +873,7 @@ namespace Wholemy {
 				OCount++;
 			}
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# ^ 
@@ -874,7 +889,7 @@ namespace Wholemy {
 				OCount++;
 			}
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# + (#struct # L, #struct # R) 
@@ -941,7 +956,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OMinus) OCount = -OCount;
 			if (OCount == 0) OArray = null;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# + (#struct # L, #int # R) 
@@ -986,7 +1001,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OMinus) OCount = -OCount;
 			if (OCount == 0) OArray = null;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# - (#struct # L, #struct # R) 
@@ -994,7 +1009,7 @@ namespace Wholemy {
 			var RCount = R.Count;
 			if (RCount == 0) return L;
 			var LCount = L.Count;
-			if (LCount == 0) return new BugInt(R.Value, -RCount);
+			if (LCount == 0) return new BugInt(R.Value, -RCount, L.Bound);
 			var RMinus = false; if (RCount < 0) { RMinus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			var LMinus = false; if (LCount < 0) { LMinus = true; LCount = -LCount; }
@@ -1006,6 +1021,7 @@ namespace Wholemy {
 			if (LCount < RCount) {
 				LCount = RCount; RCount = OCount;
 				LArray = RArray; RArray = OArray;
+				LMinus = RMinus; RMinus = LMinus;
 				OMinus = !OMinus;
 			} else if (LCount == RCount) {
 				while (--LCount >= 0) {
@@ -1014,6 +1030,7 @@ namespace Wholemy {
 					if (LValue < RValue) {
 						LCount = RCount; RCount = OCount;
 						LArray = RArray; RArray = OArray;
+						LMinus = RMinus; RMinus = LMinus;
 						OMinus = !OMinus;
 						break;
 					} else if (LValue > RValue) break;
@@ -1034,7 +1051,7 @@ namespace Wholemy {
 					A = (uint)(-(int)(aa >> 32));
 				}
 			} else {
-				if (RMinus) OMinus = !OMinus;
+				if (LMinus) OMinus = !OMinus;
 				if (OCount < LCount) { OCount = LCount; }
 				OArray = new uint[OCount + 1];
 				OCount = 0;
@@ -1052,7 +1069,7 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OMinus) OCount = -OCount;
 			if (OCount == 0) OArray = null;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# - (#struct # L, #int # R) 
@@ -1081,7 +1098,7 @@ namespace Wholemy {
 					A = (uint)(-(int)(aa >> 32));
 				}
 			} else {
-				if (RMinus) OMinus = !OMinus;
+				if (LMinus) OMinus = !OMinus;
 				if (OCount < LCount) { OCount = LCount; }
 				OArray = new uint[OCount + 1];
 				OCount = 0;
@@ -1099,32 +1116,32 @@ namespace Wholemy {
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
 			if (OMinus) OCount = -OCount;
 			if (OCount == 0) OArray = null;
-			return new BugInt(OArray, OCount);
+			return new BugInt(OArray, OCount, L.Bound);
 		}
 		#endregion
 		#region #operator# - (#struct # L) 
 		public static BugInt operator -(BugInt L) {
-			return new BugInt(L.Value, -L.Count);
+			return new BugInt(L.Value, -L.Count, L.Bound);
 		}
 		#endregion
 		#region #method# Abs(V) 
 		public static BugInt Abs(BugInt L) {
 			var Count = L.Count;
-			if (Count < 0) return new BugInt(L.Value, -Count);
+			if (Count < 0) return new BugInt(L.Value, -Count, L.Bound);
 			return L;
 		}
 		#endregion
 		#region #operator# + (#struct # L) 
 		public static BugInt operator +(BugInt L) {
 			var Count = L.Count;
-			if (Count < 0) return new BugInt(L.Value, -Count);
+			if (Count < 0) return new BugInt(L.Value, -Count, L.Bound);
 			return L;
 		}
 		#endregion
 		#region #operator# ~ (#struct # L) 
 		public static BugInt operator ~(BugInt L) {
 			L += 1;
-			return new BugInt(L.Value, -L.Count);
+			return new BugInt(L.Value, -L.Count, L.Bound);
 		}
 		#endregion
 		#region #operator# -- (#struct # L) 
@@ -1292,10 +1309,10 @@ namespace Wholemy {
 			var OArray = new uint[cuRes4];
 			var OCount = 0;
 			while (OCount < LCount) { OArray[OCount] = LArray[OCount]; OCount++; }
-			var r = new BugInt(OArray, LCount);
-			BugInt b = new BugInt(new uint[cuRes4], 0);
+			var r = new BugInt(OArray, LCount, L.Bound);
+			BugInt b = new BugInt(new uint[cuRes4], 0, L.Bound);
 			var AArray = new uint[cuRes4]; AArray[0] = 1u;
-			BugInt a = new BugInt(AArray, 1);
+			BugInt a = new BugInt(AArray, 1, L.Bound);
 			BugInt t;
 			if ((E & 1) == 0) Minus = false;
 			ee = E;
@@ -1303,7 +1320,7 @@ namespace Wholemy {
 				if ((ee & 1) != 0) { t = a; a = b; b = t; a.Mul(r, b); }
 				if ((ee >>= 1) == 0) break; t = r; r = b; b = t; r.Mul(b, b);
 			}
-			return new BugInt(a.Value, Minus ? -a.Count : a.Count);
+			return new BugInt(a.Value, Minus ? -a.Count : a.Count, L.Bound);
 		}
 		#endregion
 		#region #struct # #implicit operator # (#uint # V) 
