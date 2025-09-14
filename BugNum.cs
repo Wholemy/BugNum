@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
@@ -100,13 +102,15 @@ namespace Wholemy {
 		public override string ToString() {
 			var MaxDecimalFraction = 100;
 			var T = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
+			var Sign = "";
 			var Numer = this.Numer;
 			var Venom = this.Venom;
+			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
 			var Divis = Gcd(ref Numer, ref Venom);
 			var Integer = Numer / Venom;
 			var Renom = Venom;
 			var Remin = Numer % Renom;
-			if (Remin == 0) return Integer.ToString();
+			if (Remin == 0) return Sign + Integer.ToString();
 			System.Text.StringBuilder SB = new System.Text.StringBuilder();
 			var pRemin = Remin;
 			var pRenom = Renom;
@@ -122,7 +126,7 @@ namespace Wholemy {
 				//	return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Integer.ToString() + "." + SB.ToString() + Nemin.ToString() + "...";
 				SB.Append(Nemin);
 				if (SB.Length >= MaxDecimalFraction) {
-					return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Integer.ToString() + "." + SB.ToString() + "......";
+					return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Sign + Integer.ToString() + "." + SB.ToString() + "......";
 				}
 				pRemin = Remin; pRenom = Renom;
 				if (Renom % 10 == 0) { Renom /= 10; pInfin = Infin++; } else { Remin *= 10; }
@@ -141,7 +145,7 @@ namespace Wholemy {
 				//	}
 				//}
 			}
-			return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Integer.ToString() + "." + SB.ToString();
+			return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Sign + Integer.ToString() + "." + SB.ToString();
 		}
 		#endregion
 		#region #operator# / 
@@ -212,14 +216,9 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #new# (#double # Value) 
-		#region #through# 
-#if TRACE
-		[System.Diagnostics.DebuggerStepThrough]
-#endif
-		#endregion
-		public BugNum(double Value, int Bound = 0) {
+		public BugNum(double Value) {
 			var Minus = false;
-			if (Value < 0) { Value = -Value; }
+			if (Value < 0) { Value = -Value; Minus = true; }
 			var Int = (ulong)Value;
 			var Num = new BugInt(Int);
 			Value -= Int;
@@ -533,58 +532,53 @@ namespace Wholemy {
 			R += (Q *= XX / 960);
 			R += (Q *= XX / 1224);
 			R += (Q *= XX / 1520);
-			if (R >= 1.0) R = 1.0;
-			if (R <= -1.0) R = -1.0;
+			if (R >= 1.0) return 1.0;
+			if (R <= -1.0) return -1.0;
 			return R;
 		}
 		#endregion
 		#region #method# Sin(X) 
-		public static BugNum Sin(BugNum X) {
-			var XX = -(X * X);
+		public static BugNum Sin(BugNum X, int Depth = 10, int Count = 17) {
+			X = X.Round(Count);
+			var XX = -(X * X).Round(Count);
 			var Q = X;
 			var R = X;
-			// var P = 1; var N = (P++ * P++ * 4);
-			R += (Q *= XX / 8);
-			R += (Q *= XX / 48);
-			R += (Q *= XX / 120);
-			R += (Q *= XX / 224);
-			R += (Q *= XX / 360);
-			R += (Q *= XX / 528);
-			R += (Q *= XX / 728);
-			R += (Q *= XX / 960);
-			R += (Q *= XX / 1224);
-			R += (Q *= XX / 1520);
-			if (R >= 1.0) R = 1.0;
-			if (R <= -1.0) R = -1.0;
+			var P = 1u;
+			for (int I = 0; I < Depth; I++) {
+				var N = (P++ * P++ * 4);
+				Q *= XX / N;
+				if(Q == 0) break;
+				Q = Q.Round(Count);
+				R += Q;
+				R = R.Round(Count);
+			}
+			if (R <= -1) return -1;
+			if (R >= 1) return 1;
 			return R;
 		}
 		#endregion
 		#region #method# Cos(X) 
-		public static BugNum Cos(BugNum X) {
+		public static BugNum Cos(BugNum X, int Depth = 10, int Count = 17) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
-			var XX = X * X;
+			var XX = (X * X).Round(Count);
 			var XXX = XX;
 			var R = 1 - (XX / 2);
 			R += (XXX *= XX) / 24;
-			R -= (XXX *= XX) / 720;
-			R += (XXX *= XX) / 40320;
-			R -= (XXX *= XX) / 3628800;
-			R += (XXX *= XX) / 479001600;
-			R -= (XXX *= XX) / 87178291200;
-			R += (XXX *= XX) / 20922789888000;
-			R -= (XXX *= XX) / 6402373705728000;
-			R += (XXX *= XX) / 2432902008176640000;
-			//uint P = 21;
-			//var F = new BugInt(2432902008176640000);
-			//F *= (P++ * P++);
-			//R += (XXX *= XX) / F;
-			//for (var I = 0; I < 5; I++) {
-			//	F *= (P++ * P++);
-			//	R -= (XXX *= XX) / F;
-			//	F *= (P++ * P++);
-			//	R += (XXX *= XX) / F;
-			//}
+			R = R.Round(Count);
+			XXX = XXX.Round(Count);
+			uint P = 5;
+			var F = new BugInt(24);
+			for (var I = 0; I < Depth; I++) {
+				F *= (P++ * P++);
+				R -= (XXX *= XX) / F;
+				R = R.Round(Count);
+				XXX = XXX.Round(Count);
+				F *= (P++ * P++);
+				R += (XXX *= XX) / F;
+				R = R.Round(Count);
+				XXX = XXX.Round(Count);
+			}
 			if (M) R = -R;
 			return R;
 		}
