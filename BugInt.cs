@@ -160,7 +160,7 @@ namespace Wholemy {
 			var CArray = new char[CCount];
 			var CIndex = CCount - 1;
 			var ACount = 0;
-		Next:
+			Next:
 			var A = 0u;
 			while (Count-- > 0) {
 				var OO = (ulong)A;
@@ -184,6 +184,84 @@ namespace Wholemy {
 			}
 			if (Minus) { CArray[CIndex] = '-'; } else { CIndex++; }
 			return new string(CArray, CIndex, CCount - CIndex);
+		}
+		#endregion
+		#region #method# ToDouble(D) 
+		public double ToDouble(int D) {
+			var Count = this.Count;
+			if (Count == 0) return 0;
+			var Minus = false;
+			if (Count < 0) { Count = -Count; Minus = true; }
+			var SArray = this.Value;
+			var TArray = new uint[Count];
+			var Index = 0;
+			while (Index < Count) { TArray[Index] = SArray[Index]; Index++; }
+			while (Count > 0 && TArray[Count - 1] == 0) { Count--; }
+			if (Count == 0) return 0;
+			var CCount = Count * 11;
+			var ACount = 0;
+			var R = 0.0;
+			Next:
+			var A = 0u;
+			while (Count-- > 0) {
+				var OO = (ulong)A;
+				var LL = OO << 32 | (ulong)TArray[Count];
+				A = 0u;
+				if (LL != 0) { A = (uint)(LL / 10); OO = LL - (A * 10); }
+				TArray[Count] = A;
+				if (ACount == 0 && A != 0) {
+					ACount = Count + 1;
+				}
+				A = (uint)OO;
+			}
+			R += A; R /= 10;
+			if (--D > 0 && ACount > 0) {
+				Count = ACount;
+				ACount = 0;
+				goto Next;
+			}
+			if (Minus) { R = -R; }
+			return R;
+		}
+		#endregion
+		#region #get# Digits 
+		/// <summary>Возвращает количество десятичных цифр в числе)</summary>
+		public int Digits {
+			get {
+				var Count = this.Count;
+				if (Count == 0) return 0;
+				var Minus = false;
+				if (Count < 0) { Count = -Count; Minus = true; }
+				var SArray = this.Value;
+				var TArray = new uint[Count];
+				var Index = 0;
+				while (Index < Count) { TArray[Index] = SArray[Index]; Index++; }
+				while (Count > 0 && TArray[Count - 1] == 0) { Count--; }
+				if (Count == 0) return 0;
+				var ACount = 0;
+				var R = 0;
+				Next:
+				var A = 0u;
+				while (Count-- > 0) {
+					var OO = (ulong)A;
+					var LL = OO << 32 | (ulong)TArray[Count];
+					A = 0u;
+					if (LL != 0) { A = (uint)(LL / 10); OO = LL - (A * 10); }
+					TArray[Count] = A;
+					if (ACount == 0 && A != 0) {
+						ACount = Count + 1;
+					}
+					A = (uint)OO;
+				}
+				R++;
+				if (ACount > 0) {
+					Count = ACount;
+					ACount = 0;
+					goto Next;
+				}
+				if (Minus) R = -R;
+				return R;
+			}
 		}
 		#endregion
 		#region #operator# * (L, R) 
@@ -579,7 +657,7 @@ namespace Wholemy {
 			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
 			if (L == R) { M = 0; if (Minus) { return -1; } return 1; }
 			if (L < R) { if (Minus) { M = -L; } else { M = L; } return 0; }
-			var Shift = L.Bit - R.Bit;
+			var Shift = L.Bits - R.Bits;
 			var Remain = L;
 			var Svalue = R << Shift;
 			var Result = new BugInt();
@@ -604,14 +682,24 @@ namespace Wholemy {
 			return R;
 		}
 		#endregion
-		#region #get# Bit 
-		public int Bit {
+		#region #get# Bits 
+		/// <summary>Возвращает количество бит в числе)</summary>
+		public int Bits {
 			get {
 				var Array = this.Value;
 				var Count = this.Count;
 				if (Count < 0) Count = -Count;
-				var Index = Count - 1;
-				if (Count > 0) return Count * 32 - CbitHz(Array[Index]);
+				while (Count > 0 && Array[Count - 1] == 0) { Count--; }
+				if (Count > 0) {
+					uint V = Array[Count - 1];
+					int R = 0;
+					if ((V & 0xFFFF0000u) == 0) { R += 16; V <<= 16; }
+					if ((V & 0xFF000000u) == 0) { R += 8; V <<= 8; }
+					if ((V & 0xF0000000u) == 0) { R += 4; V <<= 4; }
+					if ((V & 0xC0000000u) == 0) { R += 2; V <<= 2; }
+					if ((V & 0x80000000u) == 0) { R++; }
+					return Count * 32 - R;
+				}
 				return 0;
 			}
 		}
@@ -1310,12 +1398,33 @@ namespace Wholemy {
 		#region #struct # #implicit operator # (#long # V) 
 		public static implicit operator BugInt(long V) { return new BugInt(V); }
 		#endregion
+		#region #int # #explicit operator # (#struct # V)
+		public static explicit operator int(BugInt V) {
+			var C = V.Count;
+			if (C < 0) return -((int)V.Value[0] & int.MaxValue);
+			if (C != 0) return ((int)V.Value[0] & int.MaxValue);
+			return 0;
+		}
+		#endregion
 		#region #uint # #explicit operator # (#struct # V)
 		public static explicit operator uint(BugInt V) {
 			var C = V.Count;
-			if (C < 0) C = -C;
-			if (C > 0) return V.Value[0];
+			if (C != 0) return V.Value[0];
 			return 0;
+		}
+		#endregion
+		#region #long # #explicit operator # (#struct # V)
+		public static explicit operator long(BugInt V) {
+			var C = V.Count;
+			var R = 0ul;
+			if (C < 0) {
+				if (C < -1) { R |= V.Value[1]; R <<= 32; }
+				R |= V.Value[0];
+				return -((long)R & long.MinValue);
+			}
+			if (C > 1) { R |= V.Value[1]; R <<= 32; }
+			if (C > 0) R |= V.Value[0];
+			return ((long)R & long.MinValue);
 		}
 		#endregion
 		#region #ulong # #explicit operator # (#struct # V)
@@ -1324,7 +1433,7 @@ namespace Wholemy {
 			if (C < 0) C = -C;
 			var R = 0ul;
 			if (C > 1) { R |= V.Value[1]; R <<= 32; }
-			if (C > 0) R |= V.Value[1];
+			if (C > 0) R |= V.Value[0];
 			return R;
 		}
 		#endregion
@@ -1356,8 +1465,8 @@ namespace Wholemy {
 			}
 		}
 		#endregion
-		#region #method# Bits(Count) 
-		public static BugInt Bits(int Count) {
+		#region #method# Bit(Count) 
+		public static BugInt Bit(int Count) {
 			var Minus = false;
 			uint[] Array = null;
 			if (Count < 0) { Count = -Count; Minus = true; }
