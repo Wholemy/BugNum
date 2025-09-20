@@ -763,50 +763,30 @@ namespace Wholemy {
 		#endregion
 		#region #double # #explicit operator # (#struct # V)
 		public static explicit operator double(BugNum V) {
+			var Minus = false;
 			var Numer = V.Numer;
+			if (Numer < 0) { Numer = -Numer; Minus = true; }
 			var Venom = V.Venom;
-			var D = Venom.Digits;
-			if (D < 50) {
-				var A = BugInt.Pow(10, 50 - D);
-				Numer *= A;
-				Venom *= A;
-				D = 50;
-			} else if (D > 50) {
-				var A = BugInt.Pow(10, D - 50);
-				Numer /= A;
-				Venom /= A;
-				D = 50;
-			}
-			Numer *= Venom;
-			Numer /= Venom;
-			var R = Numer.ToDouble(D - 1);
-			Numer /= Venom;
-			if (Numer > 0) R += (ulong)Numer;
+			var Int = Numer / Venom;
+			Numer -= Int * Venom;
+			var R = Numer.ToDouble();
+			if (Int > 0) R += (ulong)Int;
+			if (Minus) R = -R;
 			return R;
 		}
 		#endregion
 		#region #get# Double 
 		public double Double {
 			get {
+				var Minus = false;
 				var Numer = this.Numer;
+				if (Numer < 0) { Numer = -Numer; Minus = true; }
 				var Venom = this.Venom;
-				var D = Venom.Digits;
-				if (D < 50) {
-					var A = BugInt.Pow(10, 50 - D);
-					Numer *= A;
-					Venom *= A;
-					D = 50;
-				} else if (D > 50) {
-					var A = BugInt.Pow(10, D - 50);
-					Numer /= A;
-					Venom /= A;
-					D = 50;
-				}
-				Numer *= Venom;
-				Numer /= Venom;
-				var R = Numer.ToDouble(D-1);
-				Numer /= Venom;
-				if (Numer > 0) R += (ulong)Numer;
+				var Int = Numer / Venom;
+				Numer -= Int * Venom;
+				var R = Numer.ToDouble();
+				if (Int > 0) R += (ulong)Int;
+				if (Minus) R = -R;
 				return R;
 			}
 		}
