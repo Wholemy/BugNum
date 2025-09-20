@@ -1,40 +1,28 @@
-using System.Numerics;
-
 namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
 		public BugInt Venom;
 		#region #new# (Value) 
-		public BugNum(BugNum Value) {
-			BugInt Numer = Value.Numer; BugInt Venom = Value.Venom;
-			BugInt N, V;
-			uint NM = 0, VM = 0, DM = 1000000000;
-			if (Numer != 0 && Venom != 0) {
-			NextZero:
-				N = BugInt.DivMod(Numer, DM, out NM);
-				V = BugInt.DivMod(Venom, DM, out VM);
-				if (NM == 0 && VM == 0) { Numer = N; Venom = V; goto NextZero; } else {
-					while (DM > 10) { DM /= 10; if (NM % DM == 0 && VM % DM == 0) goto NextZero; }
-				}
-			}
-			//if (Numer != 0 && Venom != 0) Gcd(ref Numer, ref Venom);
-			this.Numer = Numer;
-			this.Venom = Venom;
-		}
+		#region #through# 
+#if TRACE
+		[System.Diagnostics.DebuggerStepThrough]
+#endif
 		#endregion
-		#region #new# (Numer, Venom, Bound) 
-		public BugNum(BugInt Numer, BugInt Venom) {
-			if (Venom < 1) throw new System.InvalidOperationException();
+		public BugNum(BugNum Value) : this(Value.Numer, Value.Venom) { }
+		#endregion
+		#region #new# (Numer, Venom) 
+		public BugNum(BugInt Numer, BugInt Venom, bool Gcden = false) {
+			if (Venom < 0) Venom = -Venom;
 			if (Numer != 0 && Venom != 0) {
 				BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
-			Next:
+				Next:
 				N = BugInt.DivMod(Numer, DM, out NM);
 				V = BugInt.DivMod(Venom, DM, out VM);
 				if (NM == 0 && VM == 0) { Numer = N; Venom = V; goto Next; } else {
 					while (DM > 10) { DM /= 10; if (NM % DM == 0 && VM % DM == 0) goto Next; }
 				}
 			}
-			//if (Numer != 0 && Venom != 0) Gcd(ref Numer, ref Venom);
+			if (Gcden && Numer != 0 && Venom != 0) Gcd(ref Numer, ref Venom);
 			this.Numer = Numer;
 			this.Venom = Venom;
 		}
@@ -76,7 +64,7 @@ namespace Wholemy {
 			var Venom = this.Venom;
 			if (Count == 0) return new BugNum(Numer / Venom, 1);
 			if (Count < 0) {
-				var Max = BugInt.Bits(-Count);
+				var Max = BugInt.Bit(-Count);
 				if (Numer > Max) {
 					var D = Venom / Max;
 					if (D > 1) {
@@ -151,7 +139,7 @@ namespace Wholemy {
 		#region #operator# / 
 		public static BugNum operator /(BugNum L, BugNum R) {
 			if (R.Numer == 0) throw new System.DivideByZeroException("R");
-			return new BugNum(L.Numer * R.Venom, L.Venom * +R.Numer);
+			return new BugNum(L.Numer * R.Venom, L.Venom * R.Numer);
 		}
 		public static BugNum operator /(BugNum L, int R) {
 			if (R == 0) throw new System.DivideByZeroException("R");
@@ -359,33 +347,51 @@ namespace Wholemy {
 			return SS;
 		}
 		#endregion
+		#region #operator # == (#struct # L, #struct # R) 
 		public static bool operator ==(BugNum L, BugNum R) {
 			return L.Numer * R.Venom == R.Numer * L.Venom;
 		}
+		#endregion
+		#region #operator # != (#struct # L, #struct # R) 
 		public static bool operator !=(BugNum L, BugNum R) {
 			return L.Numer * R.Venom != R.Numer * L.Venom;
 		}
+		#endregion
+		#region #operator # > (#struct # L, #struct # R) 
 		public static bool operator >(BugNum L, BugNum R) {
 			return L.Numer * R.Venom > R.Numer * L.Venom;
 		}
+		#endregion
+		#region #operator # >= (#struct # L, #struct # R) 
 		public static bool operator >=(BugNum L, BugNum R) {
 			return L.Numer * R.Venom >= R.Numer * L.Venom;
 		}
+		#endregion
+		#region #operator # < (#struct # L, #struct # R) 
 		public static bool operator <(BugNum L, BugNum R) {
 			return L.Numer * R.Venom < R.Numer * L.Venom;
 		}
+		#endregion
+		#region #operator # <= (#struct # L, #struct # R) 
 		public static bool operator <=(BugNum L, BugNum R) {
 			return L.Numer * R.Venom <= R.Numer * L.Venom;
 		}
+		#endregion
+		#region #explicit operator # BugInt(BugNum L) 
 		public static explicit operator BugInt(BugNum L) {
 			return L.Numer / L.Venom;
 		}
+		#endregion
+		#region #explicit operator # BugNum(BugInt L)
 		public static implicit operator BugNum(BugInt L) {
 			return new BugNum(L, 1);
 		}
+		#endregion
+		#region #explicit operator # BugNum(#int # L)
 		public static implicit operator BugNum(int L) {
 			return new BugNum(L, 1);
 		}
+		#endregion
 		#region #method# Rotate(CX, CY, BX, BY, AR, ED) 
 		/// <summary>Поворачивает координаты вокруг центра по корню четверти круга
 		/// где 90 градусов равно значению 1.0 а 360 градусов равно значению 4.0)</summary>
@@ -399,8 +405,8 @@ namespace Wholemy {
 			var D = ED;
 			var Len = SqrtDepth(CX - BX, CY - BY, D);
 			if (Len == 0) return false;
-			BugInt R = (BugInt)AR;
-			if (AR < 0) { AR = 1 + (AR - R); R %= 4; R += 3; } else { AR -= R; R %= 4; }
+			int R = (int)AR;
+			if (R < 0) { AR = R - AR; R = R % 4 + 4; } else { AR = AR - R; R = R % 4; }
 			var MX = BX; var MY = BY;
 			if (R == 1) { MX = CY - BY + CX; MY = BX - CX + CY; } // 90
 			else if (R == 2) { MX = CX - BX + CX; MY = CY - BY + CY; } // 180
@@ -496,10 +502,93 @@ namespace Wholemy {
 			return R;
 		}
 		#endregion
-		#region #method# Cos(X) 
-		public static double Cos(double X) {
+		#region #field# TAtanArray 
+		public static BugNum[] TAtanArray;
+		#endregion
+		#region #method# TAtanS(X) 
+		/// <summary>Функция возвращает обратный тангенс угла)</summary>
+		/// <remarks>
+		/// Вычисляет максимально близкие значения к System.Math.Atan)
+		/// </remarks>
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TAtanS(BugNum X) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
+			var L = 0;
+			var Y = 0;
+			var XX = X * X;
+			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
+			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
+			var R = (C / B) * X;
+			return M ? -R : R;
+		}
+		#endregion
+		#region #method# TAtan(X) 
+		/// <summary>Функция возвращает обратный тангенс угла)</summary>
+		/// <remarks>
+		/// Вычисляет максимально близкие значения к System.Math.Atan)
+		/// </remarks>
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TAtan(BugNum X) {
+			var M = false;
+			if (X < 0) { X = -X; M = true; }
+			var L = 0;
+			var Y = 0;
+			BugNum YY = 0;
+			if (X >= 4) { L = -1; X = 1.0 / X; goto Next; } else if (X < new BugNum(1, 2)) goto Next;
+			Y = (int)(X * 2);
+			if (Y < 0) Y++;
+			BugNum XX = Y / 2;
+			X = (X - XX) / (X * XX + 1);
+			Next:
+			XX = X * X;
+			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
+			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
+			var R = (C / B) * X;
+			if (Y > 0) {
+				var I = Y - 1;
+				var AR = TAtanArray;
+				if (AR == null) TAtanArray = AR = new BugNum[7];
+				var N = AR[I];
+				if (N == 0) N = AR[I] = TAtanS(Y * new BugNum(1, 2));
+				R += N;
+			}
+			if (L != 0) R = (System.Math.PI / 2) - R;
+			return M ? -R : R;
+		}
+		#endregion
+		#region #method# TAtan2(Y, X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TAtan2(BugNum Y, BugNum X) {
+			if (X == 0) {
+				if (Y == 0) return 0;
+				else if (Y > 0) return System.Math.PI / 2; else return -(System.Math.PI / 2);
+			}
+			var A = TAtan(Y / X);
+			if (X < 0) {
+				if (Y >= 0) A += System.Math.PI; else A -= System.Math.PI;
+			}
+			return A;
+		}
+		#endregion
+		#region #method# TAsin(X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TAsin(BugNum X) {
+			if (X < 0) X = -X;
+			if (X > 1) return 1;
+			return TAtan2(X, SqrtDepth(1 - X * X, 17));
+		}
+		#endregion
+		#region #method# TCos(X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TCos(BugNum X) {
+			//var Test = System.Math.Cos(X);
+			if (X < 0) { X = -X; }
+			if (X > System.Math.PI * 2) {
+				var P = X / (System.Math.PI * 2);
+				X = System.Math.PI * 2 * (P - (int)P);
+			}
+			var M = (X > System.Math.PI / 2 && X <= System.Math.PI / 2 * 3);
 			var XX = X * X;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
@@ -512,75 +601,221 @@ namespace Wholemy {
 			R += (XXX *= XX) / 20922789888000;
 			R -= (XXX *= XX) / 6402373705728000;
 			R += (XXX *= XX) / 2432902008176640000;
+			if (R < 0) R = -R;
 			if (M) R = -R;
+			//if (Test < 0 && !M) throw new System.InvalidOperationException();
 			return R;
 		}
 		#endregion
-		#region #method# Sin(X) 
-		public static double Sin(double X) {
-			var XX = -(X * X);
-			var Q = X;
-			var R = X;
-			// var P = 1; var N = (P++ * P++ * 4);
-			R += (Q *= XX / 8);
-			R += (Q *= XX / 48);
-			R += (Q *= XX / 120);
-			R += (Q *= XX / 224);
-			R += (Q *= XX / 360);
-			R += (Q *= XX / 528);
-			R += (Q *= XX / 728);
-			R += (Q *= XX / 960);
-			R += (Q *= XX / 1224);
-			R += (Q *= XX / 1520);
-			if (R >= 1.0) return 1.0;
-			if (R <= -1.0) return -1.0;
-			return R;
-		}
-		#endregion
-		#region #method# Sin(X) 
-		public static BugNum Sin(BugNum X, int Depth = 10, int Count = 17) {
-			X = X.Round(Count);
-			var XX = -(X * X).Round(Count);
-			var Q = X;
-			var R = X;
-			var P = 1u;
-			for (int I = 0; I < Depth; I++) {
-				var N = (P++ * P++ * 4);
-				Q *= XX / N;
-				if(Q == 0) break;
-				Q = Q.Round(Count);
-				R += Q;
-				R = R.Round(Count);
+		#region #method# TSin(X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TSin(BugNum X) {
+			//var Test = System.Math.Sin(X);
+			X -= System.Math.PI / 2;
+			if (X < 0) { X = -X; }
+			if (X > System.Math.PI * 2) {
+				var P = X / (System.Math.PI * 2);
+				X = System.Math.PI * 2 * (P - (int)P);
 			}
-			if (R <= -1) return -1;
-			if (R >= 1) return 1;
-			return R;
-		}
-		#endregion
-		#region #method# Cos(X) 
-		public static BugNum Cos(BugNum X, int Depth = 10, int Count = 17) {
-			var M = false;
-			if (X < 0) { X = -X; M = true; }
-			var XX = (X * X).Round(Count);
+			var M = (X > System.Math.PI / 2 && X <= System.Math.PI / 2 * 3);
+			var XX = X * X;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
 			R += (XXX *= XX) / 24;
-			R = R.Round(Count);
+			R -= (XXX *= XX) / 720;
+			R += (XXX *= XX) / 40320;
+			R -= (XXX *= XX) / 3628800;
+			R += (XXX *= XX) / 479001600;
+			R -= (XXX *= XX) / 87178291200;
+			R += (XXX *= XX) / 20922789888000;
+			R -= (XXX *= XX) / 6402373705728000;
+			R += (XXX *= XX) / 2432902008176640000;
+			if (R < 0) R = -R;
+			if (M) R = -R;
+			//if (Test < 0 && !M) throw new System.InvalidOperationException();
+			return R;
+		}
+		#endregion
+		#region #method# TSinCos(X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static void TSinCos(BugNum X, out BugNum Sin, out BugNum Cos) {
+			var S = false;
+			var C = new BugNum(0);
+			Next:
+			if (S) X -= System.Math.PI / 2;
+			var x = X;
+			if (x < 0) { x = -x; }
+			if (x > System.Math.PI * 2) {
+				var P = x / (System.Math.PI * 2);
+				x = System.Math.PI * 2 * (P - (int)P);
+			}
+			var M = (x > System.Math.PI / 2 && x <= System.Math.PI / 2 * 3);
+			var XX = x * x;
+			var XXX = XX;
+			var R = 1 - (XX / 2);
+			R += (XXX *= XX) / 24;
+			R -= (XXX *= XX) / 720;
+			R += (XXX *= XX) / 40320;
+			R -= (XXX *= XX) / 3628800;
+			R += (XXX *= XX) / 479001600;
+			R -= (XXX *= XX) / 87178291200;
+			R += (XXX *= XX) / 20922789888000;
+			R -= (XXX *= XX) / 6402373705728000;
+			R += (XXX *= XX) / 2432902008176640000;
+			if (R < 0) R = -R;
+			if (M) R = -R;
+			if (!S) { C = R; S = true; goto Next; }
+			Cos = C;
+			Sin = R;
+		}
+		#endregion
+		#region #method# TTan(X) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TTan(BugNum X) {
+			//var Test = System.Math.Tan(X);
+			var S = false;
+			BugNum C = 0;
+			Next:
+			if (S) X -= System.Math.PI / 2;
+			var x = X;
+			if (x < 0) { x = -x; }
+			if (x > System.Math.PI * 2) {
+				var P = x / (System.Math.PI * 2);
+				x = System.Math.PI * 2 * (P - (int)P);
+			}
+			var M = (x > System.Math.PI / 2 && x <= System.Math.PI / 2 * 3);
+			var XX = x * x;
+			var XXX = XX;
+			var R = 1 - (XX / 2);
+			R += (XXX *= XX) / 24;
+			R -= (XXX *= XX) / 720;
+			R += (XXX *= XX) / 40320;
+			R -= (XXX *= XX) / 3628800;
+			R += (XXX *= XX) / 479001600;
+			R -= (XXX *= XX) / 87178291200;
+			R += (XXX *= XX) / 20922789888000;
+			R -= (XXX *= XX) / 6402373705728000;
+			R += (XXX *= XX) / 2432902008176640000;
+			if (R < 0) R = -R;
+			if (M) R = -R;
+			if (!S) { C = R; S = true; goto Next; }
+			R /= C;
+			//if (Test < 0 && R >= 0) throw new System.InvalidOperationException();
+			return R;
+		}
+		#endregion
+		#region #method# TCot(x) 
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+		public static BugNum TCot(BugNum x) {
+			return (1.0 / TTan(x));
+		}
+		#endregion
+		#region #method# Cos(X) 
+		public static BugNum Cos(BugNum X, int Depth = 5, int Count = 64) {
+			var M = false;
+			if (X < 0) { X = -X; M = true; }
+			X = X.Round(Count);
+			var XX = (X * X).Round(Count);
+			var XXX = XX;
+			var R = 1 - (XX / 2);
+			XXX *= XX;
 			XXX = XXX.Round(Count);
+			R += XXX / 24;
+			R = R.Round(Count);
 			uint P = 5;
 			var F = new BugInt(24);
 			for (var I = 0; I < Depth; I++) {
 				F *= (P++ * P++);
-				R -= (XXX *= XX) / F;
+				XXX *= XX;
+				XXX = XXX.Round(Count);
+				R -= XXX / F;
 				R = R.Round(Count);
 				XXX = XXX.Round(Count);
 				F *= (P++ * P++);
-				R += (XXX *= XX) / F;
-				R = R.Round(Count);
+				XXX *= XX;
 				XXX = XXX.Round(Count);
+				R += XXX / F;
+				R = R.Round(Count);
 			}
 			if (M) R = -R;
 			return R;
+		}
+		#endregion
+		#region #int # #explicit operator # (#struct # V)
+		public static explicit operator int(BugNum V) {
+			return (int)(V.Numer / V.Venom);
+		}
+		#endregion
+		#region #uint # #explicit operator # (#struct # V)
+		public static explicit operator uint(BugNum V) {
+			return (uint)(V.Numer / V.Venom);
+		}
+		#endregion
+		#region #long # #explicit operator # (#struct # V)
+		public static explicit operator long(BugNum V) {
+			return (long)(V.Numer / V.Venom);
+		}
+		#endregion
+		#region #ulong # #explicit operator # (#struct # V)
+		public static explicit operator ulong(BugNum V) {
+			return (ulong)(V.Numer / V.Venom);
+		}
+		#endregion
+		#region #double # #explicit operator # (#struct # V)
+		public static explicit operator double(BugNum V) {
+			var Numer = V.Numer;
+			var Venom = V.Venom;
+			var D = Venom.Digits;
+			if (D < 50) {
+				var A = BugInt.Pow(10, 50 - D);
+				Numer *= A;
+				Venom *= A;
+				D = 50;
+			} else if (D > 50) {
+				var A = BugInt.Pow(10, D - 50);
+				Numer /= A;
+				Venom /= A;
+				D = 50;
+			}
+			Numer *= Venom;
+			Numer /= Venom;
+			var R = Numer.ToDouble(D - 1);
+			Numer /= Venom;
+			if (Numer > 0) R += (ulong)Numer;
+			return R;
+		}
+		#endregion
+		#region #get# Double 
+		public double Double {
+			get {
+				var Numer = this.Numer;
+				var Venom = this.Venom;
+				var D = Venom.Digits;
+				if (D < 50) {
+					var A = BugInt.Pow(10, 50 - D);
+					Numer *= A;
+					Venom *= A;
+					D = 50;
+				} else if (D > 50) {
+					var A = BugInt.Pow(10, D - 50);
+					Numer /= A;
+					Venom /= A;
+					D = 50;
+				}
+				Numer *= Venom;
+				Numer /= Venom;
+				var R = Numer.ToDouble(D-1);
+				Numer /= Venom;
+				if (Numer > 0) R += (ulong)Numer;
+				return R;
+			}
+		}
+		#endregion
+		#region #get# DoubleNum 
+		public BugNum DoubleNum {
+			get {
+				return (BugNum)Double;
+			}
 		}
 		#endregion
 	}
