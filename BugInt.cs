@@ -186,8 +186,8 @@ namespace Wholemy {
 			return new string(CArray, CIndex, CCount - CIndex);
 		}
 		#endregion
-		#region #method# ToDouble(D) 
-		public double ToDouble(int D) {
+		#region #method# ToDouble 
+		public double ToDouble() {
 			var Count = this.Count;
 			if (Count == 0) return 0;
 			var Minus = false;
@@ -215,7 +215,7 @@ namespace Wholemy {
 				A = (uint)OO;
 			}
 			R += A; R /= 10;
-			if (--D > 0 && ACount > 0) {
+			if (ACount > 0) {
 				Count = ACount;
 				ACount = 0;
 				goto Next;
