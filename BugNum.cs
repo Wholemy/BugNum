@@ -3,7 +3,8 @@ namespace Wholemy {
 		public BugInt Numer;
 		public BugInt Venom;
 		public int Depth;
-		public static int MaxDepth = 50;
+		public static int MaxDepth = 100;
+		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
 		#region #new# (Value) 
 		#region #through# 
 #if TRACE
@@ -26,55 +27,26 @@ namespace Wholemy {
 					if (Depth > 0) { Venom = BugInt.Pow(10, Depth); } else { Venom = 1; }
 				} else { Venom = 1; }
 			} else {
-				if (Venom < 0 && Depth == 0) {
-					Venom = -Venom;
-					var P = Venom.Digits;
-					var I = Numer;
-					Numer = Venom;
-					Venom = BugInt.Pow(10, P);
-					Depth = P;
-					if (I > 0) Numer += I * Venom;
-				}
-				if (Numer != 0 && Venom != 0) {
-					BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
-					var D = Depth; var DE = 9;
-					Next:
-					N = BugInt.DivMod(Numer, DM, out NM);
-					V = BugInt.DivMod(Venom, DM, out VM);
-					D -= DE;
-					if (NM == 0 && VM == 0) { Numer = N; Venom = V; Depth = D; goto Next; } else {
-						while (DM > 10) { DM /= 10; DE--; if (NM % DM == 0 && VM % DM == 0) goto Next; }
+				if (Venom > MaxVenom) {
+					var P = Venom / MaxVenom;
+					if (P >= 1) {
+						Venom /= P;
+						Numer /= P;
+						if (Venom == 0) Venom = 1;
+						Depth = MaxDepth;
 					}
 				}
-				{
-					var Int = BugInt.DivMod(Numer, Venom, out var Num);
-					var Dec = Int;
-					var End = Num;
-					var Ven = Venom;
-					var D = 0;
-					var MD = MaxDepth + 1;
-					while (Num > 0 && D < MD) {
-						D++;
-						var Pre = (uint)Ven;
-						Ven = BugInt.DivMod(Ven, 10u, out var Mod);
-						if (Ven == 0) { if (Mod > 0) D = -D; break; }
-						Dec *= 10;
-						Dec += BugInt.DivMod(Num, Ven, out Num);
-					}
-					MD--;
-					if (D > MD || -D > MD) {
-						var MM = false;
-						if (D < 0) { D = -D; MM = true; }
-						D--;
-						var De = BugInt.Pow(10, D);
-						if (Venom != De) {
-							if(MM) Numer = Dec;
-							else Numer = Dec / 10;
-							Venom = De;
-							Depth = D;
-						}
-					}
-				}
+				//if (Numer != 0 && Venom != 0) {
+				//	BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
+				//	var D = Depth; var DE = 9;
+				//	Next:
+				//	N = BugInt.DivMod(Numer, DM, out NM);
+				//	V = BugInt.DivMod(Venom, DM, out VM);
+				//	D -= DE;
+				//	if (NM == 0 && VM == 0) { Numer = N; Venom = V; Depth = D; goto Next; } else {
+				//		while (DM > 10) { DM /= 10; DE--; if (NM % DM == 0 && VM % DM == 0) goto Next; }
+				//	}
+				//}
 			}
 			this.Numer = Numer;
 			this.Venom = Venom;
