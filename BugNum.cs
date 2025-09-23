@@ -2,9 +2,13 @@ namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
 		public BugInt Venom;
-		public int Depth;
-		public static int MaxDepth = 100;
+		public static int MaxDepth = 50;
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
+		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
+		public static BugNum PId2 = PI / 2;
+		public static BugNum PId3 = PI + PId2;
+		public static BugNum PIx2 = PI * 2;
+		public static BugNum PIx4 = PI * 4;
 		#region #new# (Value) 
 		#region #through# 
 #if TRACE
@@ -15,42 +19,31 @@ namespace Wholemy {
 		#endregion
 		#region #new# (Numer, Venom, Depth) 
 		/// <summary>Инициализация большого числа)</summary>
-		/// <param name="Numer">Целое если Venom меньше или равен 0 и Depth равен 0, в остальных случаях это делимое)</param>
+		/// <param name="Numer">Целое если Venom меньше или равен 0, в остальных случаях это делимое)</param>
 		/// <param name="Venom">Делитель если больше или равен 1 и дробное если меньше или равен 0)</param>
-		/// <param name="Depth">Если 0 определяется из числа, длина дробной части, после установки реальная длина делителя, если меньше нуля бесконечное число)</param>
-		public BugNum(BugInt Numer, BugInt Venom, int Depth = 0) {
+		public BugNum(BugInt Numer, BugInt Venom) {
 			if (Venom == 0) {
-				if (Depth > 0) {
-					var P = +Numer.Zerone;
-					if (P < Depth) { Depth -= P; } else { P = Depth; Depth = 0; }
-					if (P > 0) { Numer /= BugInt.Pow(10, P); }
-					if (Depth > 0) { Venom = BugInt.Pow(10, Depth); } else { Venom = 1; }
-				} else { Venom = 1; }
+				Venom = 1;
 			} else {
-				if (Venom > MaxVenom) {
-					var P = Venom / MaxVenom;
-					if (P >= 1) {
+				var MV = MaxVenom;
+				if (Venom < 0) {
+					if (Venom > MV) {
+						var P = Venom / MV;
+						if (P > 1) { Venom /= P; }
+					}
+					Numer = Venom + (Numer * MV);
+					Venom = MV;
+				} else if (Venom > MV) {
+					var P = Venom / MV;
+					if (P > 1) {
 						Venom /= P;
 						Numer /= P;
-						if (Venom == 0) Venom = 1;
-						Depth = MaxDepth;
 					}
 				}
-				//if (Numer != 0 && Venom != 0) {
-				//	BugInt N, V; uint NM = 0, VM = 0, DM = 1000000000;
-				//	var D = Depth; var DE = 9;
-				//	Next:
-				//	N = BugInt.DivMod(Numer, DM, out NM);
-				//	V = BugInt.DivMod(Venom, DM, out VM);
-				//	D -= DE;
-				//	if (NM == 0 && VM == 0) { Numer = N; Venom = V; Depth = D; goto Next; } else {
-				//		while (DM > 10) { DM /= 10; DE--; if (NM % DM == 0 && VM % DM == 0) goto Next; }
-				//	}
-				//}
+				if (Venom == 0) Venom = 1;
 			}
 			this.Numer = Numer;
 			this.Venom = Venom;
-			this.Depth = Depth;
 		}
 		#endregion
 		#region #new# (#string # value) 
@@ -58,22 +51,19 @@ namespace Wholemy {
 			if (value == null) throw new System.ArgumentNullException("value");
 			value = value.Trim();
 			var T = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
-
-			value = value.Replace(T.NumberGroupSeparator, "");
-			int dot = value.IndexOf(T.NumberDecimalSeparator);
-			if (dot < 0) {
-				this.Numer = new BugInt(value);
-				this.Venom = 1;
-			} else {
-				value = value.Replace(T.NumberDecimalSeparator, "");
-				var Numer = new BugInt(value);
-				var Depth = value.Length - dot;
-				var Venom = BugInt.Pow(10, Depth);
-				if (Numer != 0 && Venom != 0) GetGcd(ref Numer, ref Venom);
-				this.Numer = Numer;
-				this.Venom = Venom;
-				this.Depth = Depth;
-			}
+			value = value.Replace("_", "");
+			value = value.Replace(" ", "");
+			var dotStr = ".";
+			int dot = value.IndexOf(".");
+			if (dot < 0) { dot = value.IndexOf(","); dotStr = ","; }
+			if (dot < 0) { this.Numer = new BugInt(value); this.Venom = 1; return; }
+			value = value.Replace(dotStr, "");
+			var Depth = value.Length - dot;
+			if(Depth>MaxDepth) { Depth = MaxDepth; value = value.Substring(0, Depth + dot); }
+			var Numer = new BugInt(value);
+			var Venom = BugInt.Pow(10, Depth);
+			this.Numer = Numer;
+			this.Venom = Venom;
 		}
 		#endregion
 		#region #property# GcdNum 
@@ -81,12 +71,11 @@ namespace Wholemy {
 			get {
 				var Numer = this.Numer;
 				var Venom = this.Venom;
-				var Depth = this.Depth;
 				if (Numer != 0 && Venom != 0) {
 					var Gcd = BugInt.Gcd(Numer, Venom);
 					if (Gcd > 1) { Numer /= Gcd; Venom /= Gcd; }
 				}
-				return new BugNum(Numer, Venom, Depth);
+				return new BugNum(Numer, Venom/*, Depth*/);
 			}
 		}
 		public BugInt Gcd {
@@ -140,24 +129,6 @@ namespace Wholemy {
 			var Sign = "";
 			var Numer = this.Numer;
 			var Venom = this.Venom;
-			var Depth = this.Depth;
-			if (Venom == 0) {
-				var S = Numer.ToString();
-				if (Depth == 0) return S;
-				var L = S.Length;
-				var C = 0;
-				if (L > Depth) {
-					C = L - Depth;
-					return S.Substring(0, C) + "." + S.Substring(C, L - C);
-				} else {
-					C = Depth - L + 2;
-					var I = C;
-					var Chars = new char[I];
-					while (--I >= 0) { Chars[I] = '0'; }
-					Chars[1] = '.';
-					return new string(Chars, 0, C) + S;
-				}
-			}
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
 			var Divis = GetGcd(ref Numer, ref Venom);
 			var Integer = Numer / Venom;
@@ -273,28 +244,24 @@ namespace Wholemy {
 		public BugNum(int Value) {
 			this.Numer = Value;
 			this.Venom = 1;
-			this.Depth = 0;
 		}
 		#endregion
 		#region #new# (#uint # Value) 
 		public BugNum(uint Value) {
 			this.Numer = Value;
 			this.Venom = 1;
-			this.Depth = 0;
 		}
 		#endregion
 		#region #new# (#long # Value) 
 		public BugNum(long Value) {
 			this.Numer = Value;
 			this.Venom = 1;
-			this.Depth = 0;
 		}
 		#endregion
 		#region #new# (#ulong # Value) 
 		public BugNum(ulong Value) {
 			this.Numer = Value;
 			this.Venom = 1;
-			this.Depth = 0;
 		}
 		#endregion
 		#region #new# (#double # Value) 
@@ -315,7 +282,6 @@ namespace Wholemy {
 			}
 			this.Numer = Minus ? -Num : Num;
 			this.Venom = BugInt.Pow(10, Pow);
-			this.Depth = Pow;
 		}
 		#endregion
 		#endregion
@@ -649,7 +615,7 @@ namespace Wholemy {
 				if (N == 0) N = AR[I] = TAtanS(Y * new BugNum(1, 2));
 				R += N;
 			}
-			if (L != 0) R = (System.Math.PI / 2) - R;
+			if (L != 0) R = PId2 - R;
 			return M ? -R : R;
 		}
 		#endregion
@@ -658,11 +624,11 @@ namespace Wholemy {
 		public static BugNum TAtan2(BugNum Y, BugNum X) {
 			if (X == 0) {
 				if (Y == 0) return 0;
-				else if (Y > 0) return System.Math.PI / 2; else return -(System.Math.PI / 2);
+				else if (Y > 0) return PId2; else return -PId2;
 			}
 			var A = TAtan(Y / X);
 			if (X < 0) {
-				if (Y >= 0) A += System.Math.PI; else A -= System.Math.PI;
+				if (Y >= 0) A += PI; else A -= PI;
 			}
 			return A;
 		}
@@ -680,11 +646,11 @@ namespace Wholemy {
 		public static BugNum TCos(BugNum X) {
 			//var Test = System.Math.Cos(X);
 			if (X < 0) { X = -X; }
-			if (X > System.Math.PI * 2) {
-				var P = X / (System.Math.PI * 2);
-				X = System.Math.PI * 2 * (P - (int)P);
+			if (X > PIx2) {
+				var P = X / PIx2;
+				X = PIx2 * (P - (int)P);
 			}
-			var M = (X > System.Math.PI / 2 && X <= System.Math.PI / 2 * 3);
+			var M = (X > PId2 && X <= PId3);
 			var XX = X * X;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
@@ -707,13 +673,13 @@ namespace Wholemy {
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TSin(BugNum X) {
 			//var Test = System.Math.Sin(X);
-			X -= System.Math.PI / 2;
+			X -= PId2;
 			if (X < 0) { X = -X; }
-			if (X > System.Math.PI * 2) {
-				var P = X / (System.Math.PI * 2);
-				X = System.Math.PI * 2 * (P - (int)P);
+			if (X > PIx2) {
+				var P = X / PIx2;
+				X = PIx2 * (P - (int)P);
 			}
-			var M = (X > System.Math.PI / 2 && X <= System.Math.PI / 2 * 3);
+			var M = (X > PId2 && X <= PId3);
 			var XX = X * X;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
@@ -738,14 +704,14 @@ namespace Wholemy {
 			var S = false;
 			var C = new BugNum(0);
 			Next:
-			if (S) X -= System.Math.PI / 2;
+			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
-			if (x > System.Math.PI * 2) {
-				var P = x / (System.Math.PI * 2);
-				x = System.Math.PI * 2 * (P - (int)P);
+			if (x > PIx2) {
+				var P = x / PIx2;
+				x = PIx2 * (P - (int)P);
 			}
-			var M = (x > System.Math.PI / 2 && x <= System.Math.PI / 2 * 3);
+			var M = (x > PId2 && x <= PId3);
 			var XX = x * x;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
@@ -772,14 +738,14 @@ namespace Wholemy {
 			var S = false;
 			BugNum C = 0;
 			Next:
-			if (S) X -= System.Math.PI / 2;
+			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
-			if (x > System.Math.PI * 2) {
-				var P = x / (System.Math.PI * 2);
-				x = System.Math.PI * 2 * (P - (int)P);
+			if (x > PIx2) {
+				var P = x / PIx2;
+				x = PIx2 * (P - (int)P);
 			}
-			var M = (x > System.Math.PI / 2 && x <= System.Math.PI / 2 * 3);
+			var M = (x > PId2 && x <= PId3);
 			var XX = x * x;
 			var XXX = XX;
 			var R = 1 - (XX / 2);
@@ -869,8 +835,8 @@ namespace Wholemy {
 				var Numer = this.Numer;
 				if (Numer < 0) { Numer = -Numer; Minus = true; }
 				var Venom = this.Venom;
-				var Depth = this.Depth;
-				if (Venom > 0 && Depth == 0) {
+				var Depth = 0;
+				if (Venom > 0/* && Depth == 0*/) {
 					BugInt.DivMod(Numer, Venom, out var Num);
 					var Ven = Venom;
 					var D = 0;
@@ -929,7 +895,7 @@ namespace Wholemy {
 			var TX = BX - CX;
 			var TY = BY - CY;
 			if (TX == 0 && TY == 0) return;
-			var PI = System.Math.PI * 2 * AR;
+			var PI = PIx2 * AR;
 			TSinCos(PI, out var SiN, out var CoS);
 			var X = (CoS * TX - SiN * TY + CX);
 			var Y = (SiN * TX + CoS * TY + CY);
@@ -947,7 +913,7 @@ namespace Wholemy {
 		/// <param name="AY">Конец по оси Y)</param>
 		/// <returns>Возвращает корень поворота от 0.0 до 1.0)</returns>
 		public static BugNum GetaR1(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
-			var R = (0.5 / System.Math.PI) * (TAtan2(AY - CY, AX - CX) - TAtan2(BY - CY, BX - CX));
+			var R = (new BugNum(1, 2) / PI) * (TAtan2(AY - CY, AX - CX) - TAtan2(BY - CY, BX - CX));
 			if (R < 0) R += 1;
 			return R;
 		}
