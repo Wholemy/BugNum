@@ -2,7 +2,7 @@ namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
 		public BugInt Venom;
-		public static int MaxDepth = 50;
+		public const int MaxDepth = 50;
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
 		public static BugNum PId2 = PI / 2;
@@ -325,8 +325,8 @@ namespace Wholemy {
 			return new BugNum(-value.Numer, value.Venom);
 		}
 		#endregion
-		#region #method# SqrtDebug(S, Bound) 
-		public static BugNum SqrtDebug(BugNum S, int Depth) {
+		#region #method# SqrtDebug(S, Depth = MaxDepth) 
+		public static BugNum SqrtDebug(BugNum S, int Depth = MaxDepth) {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
@@ -360,13 +360,13 @@ namespace Wholemy {
 			return new BugNum(Ret, VVV);
 		}
 		#endregion
-		#region #method# SqrtDepth(X, Y, Depth) 
-		public static BugNum SqrtDepth(BugNum X, BugNum Y, int Depth) {
-			return SqrtDepth(X * X + Y * Y, Depth);
+		#region #method# Sqrt(X, Y, Depth = MaxDepth) 
+		public static BugNum Sqrt(BugNum X, BugNum Y, int Depth = MaxDepth) {
+			return Sqrt(X * X + Y * Y, Depth);
 		}
 		#endregion
-		#region #method# SqrtDepth(S, Depth) 
-		public static BugNum SqrtDepth(BugNum S, int Depth) {
+		#region #method# Sqrt(S, Depth = MaxDepth) 
+		public static BugNum Sqrt(BugNum S, int Depth = MaxDepth) {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
@@ -378,35 +378,6 @@ namespace Wholemy {
 				SS = T;
 			}
 			return new BugNum(SS, BugInt.Pow(10, Depth));
-		}
-		#endregion
-		#region #method# Sqrt(X) 
-		public static double Sqrt(double X) {
-			if (X == 0) return 0; if (X < 0) return 1;
-			var PS = 0.0;
-			var SS = X * 2 / X;
-			var SSS = (SS - (X / SS)) / 2u;
-			while (SSS != PS) {
-				SS -= SSS;
-				PS = SSS;
-				SSS = (SS - (X / SS)) / 2u;
-			}
-			return SS;
-		}
-		#endregion
-		#region #method# Sqrt(X, Y) 
-		public static double Sqrt(double X, double Y) {
-			var S = X * X + Y * Y;
-			if (S == 0) return 0; if (S < 0) return 1;
-			var PS = 0.0;
-			var SS = S * 2 / S;
-			var SSS = (SS - (S / SS)) / 2u;
-			while (SSS != PS) {
-				SS -= SSS;
-				PS = SSS;
-				SSS = (SS - (S / SS)) / 2u;
-			}
-			return SS;
 		}
 		#endregion
 		#region #operator # == (#struct # L, #struct # R) 
@@ -465,7 +436,7 @@ namespace Wholemy {
 		public static bool Rotate(BugNum CX, BugNum CY, ref BugNum BX, ref BugNum BY, BugNum AR, int ED = 56) {
 			if (AR == 0) return false;
 			var D = ED;
-			var Len = SqrtDepth(CX - BX, CY - BY, D);
+			var Len = Sqrt(CX - BX, CY - BY, D);
 			if (Len == 0) return false;
 			int R = (int)AR;
 			if (R < 0) { AR = R - AR; R = R % 4 + 4; } else { AR = AR - R; R = R % 4; }
@@ -476,13 +447,13 @@ namespace Wholemy {
 			var EX = BX; var EY = BY; BX = MX; BY = MY;
 			if (AR > 0 && R >= 0 && R < 3) { EX = CY - MY + CX; EY = MX - CX + CY; } // 90
 			while (AR > 0 && AR < 1 && ED > 0) {
-				var L = SqrtDepth(MX - EX, MY - EY, D);
+				var L = Sqrt(MX - EX, MY - EY, D);
 				if (L == 0) break;
 				var ll = L / 2;
 				if (AR < new BugNum(1, 2)) {
 					EX = MX + (EX - MX) / L * ll;
 					EY = MY + (EY - MY) / L * ll;
-					ll = SqrtDepth(CX - EX, CY - EY, D);
+					ll = Sqrt(CX - EX, CY - EY, D);
 					EX = CX + (EX - CX) / ll * Len;
 					EY = CY + (EY - CY) / ll * Len;
 					AR = AR * 2;
@@ -493,7 +464,7 @@ namespace Wholemy {
 				} else {
 					MX = EX + (MX - EX) / L * ll;
 					MY = EY + (MY - EY) / L * ll;
-					ll = SqrtDepth(CX - MX, CY - MY, D);
+					ll = Sqrt(CX - MX, CY - MY, D);
 					MX = CX + (MX - CX) / ll * Len;
 					MY = CY + (MY - CY) / ll * Len;
 					MX = MX.Round(D);
@@ -518,20 +489,20 @@ namespace Wholemy {
 		/// Возникает в случае непредусмотренного состояния, требует исправления)</exception>
 		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY, int ED = 56) {
 			var D = ED;
-			var BL = SqrtDepth(CX - BX, CY - BY, D);
+			var BL = Sqrt(CX - BX, CY - BY, D);
 			if (BL == 0) return 0;
-			var AL = SqrtDepth(CX - AX, CY - AY, D);
+			var AL = Sqrt(CX - AX, CY - AY, D);
 			if (AL == 0) return 0;
 			AX = CX + (AX - CX) / AL * BL;
 			AY = CY + (AY - CY) / AL * BL;
-			AL = SqrtDepth(CX - AX, CY - AY, D);
+			AL = Sqrt(CX - AX, CY - AY, D);
 			var X1 = CY - BY + CX; var Y1 = BX - CX + CY; // 90
 			var X2 = CX - BX + CX; var Y2 = CY - BY + CY; // 180
 			var X3 = BY - CY + CX; var Y3 = CX - BX + CY; // 270
-			var L0 = SqrtDepth(BX - AX, BY - AY, D);
-			var L1 = SqrtDepth(X1 - AX, Y1 - AY, D);
-			var L2 = SqrtDepth(X2 - AX, Y2 - AY, D);
-			var L3 = SqrtDepth(X3 - AX, Y3 - AY, D);
+			var L0 = Sqrt(BX - AX, BY - AY, D);
+			var L1 = Sqrt(X1 - AX, Y1 - AY, D);
+			var L2 = Sqrt(X2 - AX, Y2 - AY, D);
+			var L3 = Sqrt(X3 - AX, Y3 - AY, D);
 			BugNum R = 0, MX = 0, MY = 0, EX = 0, EY = 0;
 			if (L0 < L2 && L0 < L3 && L1 < L2 && L1 <= L3) {
 				R = 0; MX = BX; MY = BY; EX = X1; EY = Y1;
@@ -543,15 +514,15 @@ namespace Wholemy {
 				R = 3; MX = X3; MY = Y3; EX = BX; EY = BY; L1 = L0; L0 = L3;
 			} else { throw new System.InvalidProgramException(); }
 			BugNum AR = 1;
-			while (L0 > 0 && (L2 = SqrtDepth(MX - EX, MY - EY, D)) > 0) {
+			while (L0 > 0 && (L2 = Sqrt(MX - EX, MY - EY, D)) > 0) {
 				AR /= 2;
 				L3 = L2 / 2;
 				BX = MX + (EX - MX) / L2 * L3;
 				BY = MY + (EY - MY) / L2 * L3;
-				L2 = SqrtDepth(CX - BX, CY - BY, D);
+				L2 = Sqrt(CX - BX, CY - BY, D);
 				BX = CX + (BX - CX) / L2 * BL;
 				BY = CY + (BY - CY) / L2 * BL;
-				L3 = SqrtDepth(AX - BX, AY - BY, D);
+				L3 = Sqrt(AX - BX, AY - BY, D);
 				if (L0 < L1) {
 					if (EX == BX && EY == BY) break; if (L1 <= L3) break;
 					EX = BX; EY = BY; L1 = L3;
@@ -638,13 +609,12 @@ namespace Wholemy {
 		public static BugNum TAsin(BugNum X) {
 			if (X < 0) X = -X;
 			if (X > 1) return 1;
-			return TAtan2(X, SqrtDepth(1 - X * X, 17));
+			return TAtan2(X, Sqrt(1 - X * X, 17));
 		}
 		#endregion
 		#region #method# TCos(X) 
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TCos(BugNum X) {
-			//var Test = System.Math.Cos(X);
 			if (X < 0) { X = -X; }
 			if (X > PIx2) {
 				var P = X / PIx2;
@@ -665,14 +635,12 @@ namespace Wholemy {
 			R += (XXX *= XX) / 2432902008176640000;
 			if (R < 0) R = -R;
 			if (M) R = -R;
-			//if (Test < 0 && !M) throw new System.InvalidOperationException();
 			return R;
 		}
 		#endregion
 		#region #method# TSin(X) 
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TSin(BugNum X) {
-			//var Test = System.Math.Sin(X);
 			X -= PId2;
 			if (X < 0) { X = -X; }
 			if (X > PIx2) {
@@ -694,7 +662,6 @@ namespace Wholemy {
 			R += (XXX *= XX) / 2432902008176640000;
 			if (R < 0) R = -R;
 			if (M) R = -R;
-			//if (Test < 0 && !M) throw new System.InvalidOperationException();
 			return R;
 		}
 		#endregion
@@ -734,7 +701,6 @@ namespace Wholemy {
 		#region #method# TTan(X) 
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TTan(BugNum X) {
-			//var Test = System.Math.Tan(X);
 			var S = false;
 			BugNum C = 0;
 			Next:
@@ -762,7 +728,6 @@ namespace Wholemy {
 			if (M) R = -R;
 			if (!S) { C = R; S = true; goto Next; }
 			R /= C;
-			//if (Test < 0 && R >= 0) throw new System.InvalidOperationException();
 			return R;
 		}
 		#endregion
