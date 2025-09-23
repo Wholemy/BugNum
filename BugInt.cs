@@ -230,8 +230,7 @@ namespace Wholemy {
 			get {
 				var Count = this.Count;
 				if (Count == 0) return 0;
-				var Minus = false;
-				if (Count < 0) { Count = -Count; Minus = true; }
+				if (Count < 0) { Count = -Count; }
 				var SArray = this.Value;
 				var TArray = new uint[Count];
 				var Index = 0;
@@ -259,7 +258,54 @@ namespace Wholemy {
 					ACount = 0;
 					goto Next;
 				}
-				if (Minus) R = -R;
+				return R;
+			}
+		}
+		#endregion
+		#region #get# Zerone 
+		/// <summary>Возвращает количество десятичных нулей в конце числа, значение меньше нуля если число не заканчивается единицей)</summary>
+		public int Zerone {
+			get {
+				var Count = this.Count;
+				if (Count == 0) return 0;
+				if (Count < 0) { Count = -Count; }
+				var SArray = this.Value;
+				var TArray = new uint[Count];
+				var Index = 0;
+				while (Index < Count) { TArray[Index] = SArray[Index]; Index++; }
+				while (Count > 0 && TArray[Count - 1] == 0) { Count--; }
+				if (Count == 0) return 0;
+				var ACount = 0;
+				var R = 0;
+				var One = false;
+				Next:
+				var A = 0u;
+				while (Count-- > 0) {
+					var OO = (ulong)A;
+					var LL = OO << 32 | (ulong)TArray[Count];
+					A = 0u;
+					if (LL != 0) { A = (uint)(LL / 10); OO = LL - (A * 10); }
+					TArray[Count] = A;
+					if (ACount == 0 && A != 0) {
+						ACount = Count + 1;
+					}
+					A = (uint)OO;
+				}
+				if(One) {
+					R = -R; return R;
+				} else if (A == 0) {
+					R++;
+				} else {
+					if (A != 1) { 
+						R = -R; return R;
+					}
+					One = true;
+				}
+				if (ACount > 0) {
+					Count = ACount;
+					ACount = 0;
+					goto Next;
+				}
 				return R;
 			}
 		}
@@ -1486,6 +1532,12 @@ namespace Wholemy {
 			}
 			if (Minus) Count = -Count;
 			return new BugInt(Array, Count);
+		}
+		#endregion
+		#region #method# Gcd(L, R) 
+		public static BugInt Gcd(BugInt L, BugInt R) {
+			do { var X = L % R; L = R; R = X; } while (R != 0);
+			return L;
 		}
 		#endregion
 	}
