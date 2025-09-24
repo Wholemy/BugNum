@@ -59,7 +59,7 @@ namespace Wholemy {
 			if (dot < 0) { this.Numer = new BugInt(value); this.Venom = 1; return; }
 			value = value.Replace(dotStr, "");
 			var Depth = value.Length - dot;
-			if(Depth>MaxDepth) { Depth = MaxDepth; value = value.Substring(0, Depth + dot); }
+			if (Depth > MaxDepth) { Depth = MaxDepth; value = value.Substring(0, Depth + dot); }
 			var Numer = new BugInt(value);
 			var Venom = BugInt.Pow(10, Depth);
 			this.Numer = Numer;
@@ -545,6 +545,7 @@ namespace Wholemy {
 		/// </remarks>
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TAtanS(BugNum X) {
+			//var TT = System.Math.Atan(X.Double);
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
 			var L = 0;
@@ -571,7 +572,7 @@ namespace Wholemy {
 			if (X >= 4) { L = -1; X = 1.0 / X; goto Next; } else if (X < new BugNum(1, 2)) goto Next;
 			Y = (int)(X * 2);
 			if (Y < 0) Y++;
-			BugNum XX = Y / 2;
+			var XX = Y / new BugNum(2);
 			X = (X - XX) / (X * XX + 1);
 			Next:
 			XX = X * X;
@@ -617,22 +618,32 @@ namespace Wholemy {
 		public static BugNum TCos(BugNum X) {
 			if (X < 0) { X = -X; }
 			if (X > PIx2) {
-				var P = X / PIx2;
-				X = PIx2 * (P - (int)P);
+				var XP = X / PIx2;
+				X = PIx2 * (XP - (int)XP);
 			}
 			var M = (X > PId2 && X <= PId3);
 			var XX = X * X;
 			var XXX = XX;
-			var R = 1 - (XX / 2);
-			R += (XXX *= XX) / 24;
-			R -= (XXX *= XX) / 720;
-			R += (XXX *= XX) / 40320;
-			R -= (XXX *= XX) / 3628800;
-			R += (XXX *= XX) / 479001600;
-			R -= (XXX *= XX) / 87178291200;
-			R += (XXX *= XX) / 20922789888000;
-			R -= (XXX *= XX) / 6402373705728000;
-			R += (XXX *= XX) / 2432902008176640000;
+			//var R = 1 - (XX / 2);
+			//R += (XXX *= XX) / 24;
+			//R -= (XXX *= XX) / 720;
+			//R += (XXX *= XX) / 40320;
+			//R -= (XXX *= XX) / 3628800;
+			//R += (XXX *= XX) / 479001600;
+			//R -= (XXX *= XX) / 87178291200;
+			//R += (XXX *= XX) / 20922789888000;
+			//R -= (XXX *= XX) / 6402373705728000;
+			//R += (XXX *= XX) / 2432902008176640000;
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			var I = 0;
+			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+				XXX *= XX;
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
+			}
 			if (R < 0) R = -R;
 			if (M) R = -R;
 			return R;
@@ -675,22 +686,32 @@ namespace Wholemy {
 			var x = X;
 			if (x < 0) { x = -x; }
 			if (x > PIx2) {
-				var P = x / PIx2;
-				x = PIx2 * (P - (int)P);
+				var XP = x / PIx2;
+				x = PIx2 * (XP - (int)XP);
 			}
 			var M = (x > PId2 && x <= PId3);
 			var XX = x * x;
 			var XXX = XX;
-			var R = 1 - (XX / 2);
-			R += (XXX *= XX) / 24;
-			R -= (XXX *= XX) / 720;
-			R += (XXX *= XX) / 40320;
-			R -= (XXX *= XX) / 3628800;
-			R += (XXX *= XX) / 479001600;
-			R -= (XXX *= XX) / 87178291200;
-			R += (XXX *= XX) / 20922789888000;
-			R -= (XXX *= XX) / 6402373705728000;
-			R += (XXX *= XX) / 2432902008176640000;
+			//var R = 1 - (XX / 2);
+			//R += (XXX *= XX) / 24;
+			//R -= (XXX *= XX) / 720;
+			//R += (XXX *= XX) / 40320;
+			//R -= (XXX *= XX) / 3628800;
+			//R += (XXX *= XX) / 479001600;
+			//R -= (XXX *= XX) / 87178291200;
+			//R += (XXX *= XX) / 20922789888000;
+			//R -= (XXX *= XX) / 6402373705728000;
+			//R += (XXX *= XX) / 2432902008176640000;
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			var I = 0;
+			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+				XXX *= XX;
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
+			}
 			if (R < 0) R = -R;
 			if (M) R = -R;
 			if (!S) { C = R; S = true; goto Next; }
@@ -708,22 +729,32 @@ namespace Wholemy {
 			var x = X;
 			if (x < 0) { x = -x; }
 			if (x > PIx2) {
-				var P = x / PIx2;
-				x = PIx2 * (P - (int)P);
+				var XP = x / PIx2;
+				x = PIx2 * (XP - (int)XP);
 			}
 			var M = (x > PId2 && x <= PId3);
 			var XX = x * x;
 			var XXX = XX;
-			var R = 1 - (XX / 2);
-			R += (XXX *= XX) / 24;
-			R -= (XXX *= XX) / 720;
-			R += (XXX *= XX) / 40320;
-			R -= (XXX *= XX) / 3628800;
-			R += (XXX *= XX) / 479001600;
-			R -= (XXX *= XX) / 87178291200;
-			R += (XXX *= XX) / 20922789888000;
-			R -= (XXX *= XX) / 6402373705728000;
-			R += (XXX *= XX) / 2432902008176640000;
+			//var R = 1 - (XX / 2);
+			//R += (XXX *= XX) / 24;
+			//R -= (XXX *= XX) / 720;
+			//R += (XXX *= XX) / 40320;
+			//R -= (XXX *= XX) / 3628800;
+			//R += (XXX *= XX) / 479001600;
+			//R -= (XXX *= XX) / 87178291200;
+			//R += (XXX *= XX) / 20922789888000;
+			//R -= (XXX *= XX) / 6402373705728000;
+			//R += (XXX *= XX) / 2432902008176640000;
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			var I = 0;
+			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+				XXX *= XX;
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
+			}
 			if (R < 0) R = -R;
 			if (M) R = -R;
 			if (!S) { C = R; S = true; goto Next; }
@@ -738,31 +769,23 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# Cos(X) 
-		public static BugNum Cos(BugNum X, int Depth = 5, int Count = 64) {
-			var M = false;
-			if (X < 0) { X = -X; M = true; }
-			X = X.Round(Count);
-			var XX = (X * X).Round(Count);
+		public static BugNum Cos(BugNum X, int Depth = 5) {
+			if (X < 0) { X = -X; }
+			if (X > PIx2) {
+				var XP = X / PIx2;
+				X = PIx2 * (XP - (int)XP);
+			}
+			var M = (X > PId2 && X <= PId3);
+			var XX = X * X;
 			var XXX = XX;
-			var R = 1 - (XX / 2);
-			XXX *= XX;
-			XXX = XXX.Round(Count);
-			R += XXX / 24;
-			R = R.Round(Count);
-			uint P = 5;
-			var F = new BugInt(24);
-			for (var I = 0; I < Depth; I++) {
-				F *= (P++ * P++);
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			while (XXX != 0 && F < MaxVenom) {
 				XXX *= XX;
-				XXX = XXX.Round(Count);
-				R -= XXX / F;
-				R = R.Round(Count);
-				XXX = XXX.Round(Count);
-				F *= (P++ * P++);
-				XXX *= XX;
-				XXX = XXX.Round(Count);
-				R += XXX / F;
-				R = R.Round(Count);
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
 			}
 			if (M) R = -R;
 			return R;
@@ -878,6 +901,8 @@ namespace Wholemy {
 		/// <param name="AY">Конец по оси Y)</param>
 		/// <returns>Возвращает корень поворота от 0.0 до 1.0)</returns>
 		public static BugNum GetaR1(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
+			//var A = TAtan2(AY - CY, AX - CX);
+			//var B = TAtan2(BY - CY, BX - CX);
 			var R = (new BugNum(1, 2) / PI) * (TAtan2(AY - CY, AX - CX) - TAtan2(BY - CY, BX - CX));
 			if (R < 0) R += 1;
 			return R;
