@@ -2,7 +2,7 @@ namespace Wholemy {
 	public struct BugNum {
 		public BugInt Numer;
 		public BugInt Venom;
-		public const int MaxDepth = 50;
+		public const int MaxDepth = 100;
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
 		public static BugNum PId2 = PI / 2;
@@ -538,22 +538,45 @@ namespace Wholemy {
 		#region #field# TAtanArray 
 		public static BugNum[] TAtanArray;
 		#endregion
-		#region #method# TAtanS(X) 
-		/// <summary>Функция возвращает обратный тангенс угла)</summary>
+		#region #method# TAtanPoint(X) 
+		/// <summary>Функция возвращает обратный тангенс угла для контрольной точки с проверкой тангенсом и уточнением)</summary>
 		/// <remarks>
 		/// Вычисляет максимально близкие значения к System.Math.Atan)
 		/// </remarks>
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-		public static BugNum TAtanS(BugNum X) {
-			//var TT = System.Math.Atan(X.Double);
+		public static BugNum TAtanPoint(BugNum X) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
-			var L = 0;
-			var Y = 0;
 			var XX = X * X;
 			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
 			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
 			var R = (C / B) * X;
+			var I = new BugNum(1, 10);
+			var T = TTan(R);
+			if (T < 0) { T = -T; }
+			var P = R;
+			while (T != X) {
+				if (T < X) {
+					var RI = R + I;
+					var TT = TTan(RI);
+					if (TT > X) {
+						I/=10;
+					} else {
+						R=RI;
+						T = TT;
+					}
+				} else {
+					var RI = R - I;
+					var TT = TTan(RI);
+					if (TT < X) {
+						I /= 10;
+					} else {
+						R = RI;
+						T = TT;
+					}
+				}
+				if(I == 0) { break; }
+			}
 			return M ? -R : R;
 		}
 		#endregion
@@ -584,7 +607,7 @@ namespace Wholemy {
 				var AR = TAtanArray;
 				if (AR == null) TAtanArray = AR = new BugNum[7];
 				var N = AR[I];
-				if (N == 0) N = AR[I] = TAtanS(Y * new BugNum(1, 2));
+				if (N == 0) N = AR[I] = TAtanPoint(Y * new BugNum(1, 2));
 				R += N;
 			}
 			if (L != 0) R = PId2 - R;
