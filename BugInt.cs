@@ -554,6 +554,7 @@ namespace Wholemy {
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			if (LCount == 0) { M = 0; return 0; }
 			var LArray = L.Value;
+			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			if (LCount == 1 && LArray[0] < R) { if (Minus) { M = -(int)LArray[0]; } else { M = (int)LArray[0]; } return 0; }
 			var OCount = LCount;
 			var OArray = new uint[LCount--];
@@ -584,6 +585,7 @@ namespace Wholemy {
 			if (LCount < 0) { Minus = true; LCount = -LCount; }
 			if (LCount == 0) { M = 0; return 0; }
 			var LArray = L.Value;
+			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			if (LCount == 1 && LArray[0] < R) { M = LArray[0]; return 0; }
 			var OCount = LCount;
 			var OArray = new uint[LCount--];
@@ -1340,13 +1342,6 @@ namespace Wholemy {
 		#region #operator# - (#struct # L) 
 		public static BugInt operator -(BugInt L) {
 			return new BugInt(L.Value, -L.Count);
-		}
-		#endregion
-		#region #method# Abs(V) 
-		public static BugInt Abs(BugInt L) {
-			var Count = L.Count;
-			if (Count < 0) return new BugInt(L.Value, -Count);
-			return L;
 		}
 		#endregion
 		#region #operator# + (#struct # L) 
