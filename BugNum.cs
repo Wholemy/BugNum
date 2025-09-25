@@ -1,5 +1,3 @@
-using static Wholemy.Map;
-
 namespace Wholemy {
 	public struct BugNum {
 		public static readonly BugNum Zer = new BugNum() { Numer = 0, Venom = 1 };
@@ -949,3 +947,4 @@ namespace Wholemy {
 		#endregion
 	}
 }
+
