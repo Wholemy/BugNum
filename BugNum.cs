@@ -1,5 +1,44 @@
 namespace Wholemy {
 	public struct BugNum {
+		public static readonly BugNum Nan = new BugNum();
+		public static readonly BugNum Pos = new BugNum() { Numer = 1 };
+		public static readonly BugNum Neg = new BugNum() { Numer = -1 };
+		#region #get# IsNan 
+		/// <summary>Возвращает истину если значение не задано)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
+		public bool IsNan => Venom == 0 && Numer == 0;
+		#endregion
+		#region #get# IsInf 
+		/// <summary>Возвращает истину если значение бесконечно)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
+		public bool IsInfinity => Venom == 0 && Numer != 0;
+		#endregion
+		#region #get# IsNeg 
+		/// <summary>Возвращает истину если значение бесконечно негативно)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
+		public bool IsNeg => Venom == 0 && Numer < 0;
+		#endregion
+		#region #get# IsPos 
+		/// <summary>Возвращает истину если значение бесконечно позитивно)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
+		public bool IsPos => Venom == 0 && Numer > 0;
+		#endregion
 		public BugInt Numer;
 		public BugInt Venom;
 		public const int MaxDepth = 100;
@@ -17,7 +56,7 @@ namespace Wholemy {
 		#endregion
 		public BugNum(BugNum Value) : this(Value.Numer, Value.Venom) { }
 		#endregion
-		#region #new# (Numer, Venom, Depth) 
+		#region #new# (Numer, Venom) 
 		/// <summary>Инициализация большого числа)</summary>
 		/// <param name="Numer">Целое если Venom меньше или равен 0, в остальных случаях это делимое)</param>
 		/// <param name="Venom">Делитель если больше или равен 1 и дробное если меньше или равен 0)</param>
@@ -50,9 +89,12 @@ namespace Wholemy {
 		public BugNum(string value) {
 			if (value == null) throw new System.ArgumentNullException("value");
 			value = value.Trim();
-			var T = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
 			value = value.Replace("_", "");
 			value = value.Replace(" ", "");
+			value.ToLower();
+			if (value.Equals("nan")) { this.Venom = 0; this.Numer = 0; return; }
+			if (value.Equals("neg")) { this.Venom = 0; this.Numer = -1; return; }
+			if (value.Equals("pos")) { this.Venom = 0; this.Numer = 1; return; }
 			var dotStr = ".";
 			int dot = value.IndexOf(".");
 			if (dot < 0) { dot = value.IndexOf(","); dotStr = ","; }
@@ -129,6 +171,11 @@ namespace Wholemy {
 			var Sign = "";
 			var Numer = this.Numer;
 			var Venom = this.Venom;
+			if (Venom == 0) {
+				if (Numer == 0) return "Nan";
+				if (Numer < 0) return "Neg";
+				else return "Pos";
+			}
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
 			var Divis = GetGcd(ref Numer, ref Venom);
 			var Integer = Numer / Venom;
@@ -285,16 +332,6 @@ namespace Wholemy {
 		}
 		#endregion
 		#endregion
-		#region #method# Abs(value) 
-		#region #through# 
-#if TRACE
-		[System.Diagnostics.DebuggerStepThrough]
-#endif
-		#endregion
-		public static BugNum Abs(BugNum value) {
-			return new BugNum(BugInt.Abs(value.Numer), value.Venom);
-		}
-		#endregion
 		#region #operator# +(#struct # value)
 		#region #through# 
 #if TRACE
@@ -312,16 +349,6 @@ namespace Wholemy {
 #endif
 		#endregion
 		public static BugNum operator -(BugNum value) {
-			return new BugNum(-value.Numer, value.Venom);
-		}
-		#endregion
-		#region #method# Neg(value) 
-		#region #through# 
-#if TRACE
-		[System.Diagnostics.DebuggerStepThrough]
-#endif
-		#endregion
-		public static BugNum Neg(BugNum value) {
 			return new BugNum(-value.Numer, value.Venom);
 		}
 		#endregion
@@ -569,7 +596,7 @@ namespace Wholemy {
 					var RI = R - I * c;
 					var TT = TOfTan(RI);
 					if (TT < X) {
-						if(c==1) {
+						if (c == 1) {
 							I /= 10; c = 5; b = 3;
 						} else { c = b; b = a; }
 					} else {
@@ -613,7 +640,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			var I = 0;
-			while (XXX != 0 && /*F < MaxVenom && */I++ < 30) {
+			while (XXX != 0 && I++ < MaxDepth) {
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -649,7 +676,7 @@ namespace Wholemy {
 				var AR = TAtanArray;
 				if (AR == null) TAtanArray = AR = new BugNum[7];
 				var N = AR[I];
-				if (N == 0) N = AR[I] = TAtanOfTan(Y * new BugNum(1, 2));
+				if (N == 0) N = AR[I] = TAtanOfTan(Y * new BugNum(1, 2)).GcdNum;
 				R += N;
 			}
 			if (L != 0) R = PId2 - R;
