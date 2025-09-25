@@ -538,13 +538,9 @@ namespace Wholemy {
 		#region #field# TAtanArray 
 		public static BugNum[] TAtanArray;
 		#endregion
-		#region #method# TAtanPoint(X) 
-		/// <summary>Функция возвращает обратный тангенс угла для контрольной точки с проверкой тангенсом и уточнением)</summary>
-		/// <remarks>
-		/// Вычисляет максимально близкие значения к System.Math.Atan)
-		/// </remarks>
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-		public static BugNum TAtanPoint(BugNum X) {
+		#region #method# TAtanOfTan(X) 
+		/// <summary>Функция возвращает обратный тангенс угла с проверкой и уточнением тангенсом)</summary>
+		public static BugNum TAtanOfTan(BugNum X) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
 			var XX = X * X;
@@ -552,39 +548,85 @@ namespace Wholemy {
 			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
 			var R = (C / B) * X;
 			var I = new BugNum(1, 10);
-			var T = TTan(R);
-			if (T < 0) { T = -T; }
+			var c = 5u;
+			var b = 3u;
+			var a = 1u;
+			var T = TOfTan(R);
 			var P = R;
 			while (T != X) {
 				if (T < X) {
-					var RI = R + I;
-					var TT = TTan(RI);
+					var RI = R + I * c;
+					var TT = TOfTan(RI);
 					if (TT > X) {
-						I/=10;
+						if (c == 1) {
+							I /= 10; c = 5; b = 3;
+						} else { c = b; b = a; }
 					} else {
-						R=RI;
+						R = RI;
 						T = TT;
 					}
 				} else {
-					var RI = R - I;
-					var TT = TTan(RI);
+					var RI = R - I * c;
+					var TT = TOfTan(RI);
 					if (TT < X) {
-						I /= 10;
+						if(c==1) {
+							I /= 10; c = 5; b = 3;
+						} else { c = b; b = a; }
 					} else {
 						R = RI;
 						T = TT;
 					}
 				}
-				if(I == 0) { break; }
+				if (I == 0) { break; }
 			}
 			return M ? -R : R;
 		}
 		#endregion
+		#region #method# TOfTan(X) 
+		/// <summary>Возвращает положительный тангенс угла большей глубины)</summary>
+		public static BugNum TOfTan(BugNum X) {
+			var S = false;
+			BugNum C = 0;
+			Next:
+			if (S) X -= PId2;
+			var x = X;
+			if (x < 0) { x = -x; }
+			if (x > PIx2) {
+				var XP = x / PIx2;
+				x = PIx2 * (XP - (int)XP);
+			}
+			var M = (x > PId2 && x <= PId3);
+			var XX = x * x;
+			var XXX = XX;
+			//var R = 1 - (XX / 2);
+			//R += (XXX *= XX) / 24;
+			//R -= (XXX *= XX) / 720;
+			//R += (XXX *= XX) / 40320;
+			//R -= (XXX *= XX) / 3628800;
+			//R += (XXX *= XX) / 479001600;
+			//R -= (XXX *= XX) / 87178291200;
+			//R += (XXX *= XX) / 20922789888000;
+			//R -= (XXX *= XX) / 6402373705728000;
+			//R += (XXX *= XX) / 2432902008176640000;
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			var I = 0;
+			while (XXX != 0 && /*F < MaxVenom && */I++ < 30) {
+				XXX *= XX;
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
+			}
+			if (R < 0) R = -R;
+			//if (M) R = -R;
+			if (!S) { C = R; S = true; goto Next; }
+			R /= C;
+			return R;
+		}
+		#endregion
 		#region #method# TAtan(X) 
 		/// <summary>Функция возвращает обратный тангенс угла)</summary>
-		/// <remarks>
-		/// Вычисляет максимально близкие значения к System.Math.Atan)
-		/// </remarks>
 		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TAtan(BugNum X) {
 			var M = false;
@@ -607,7 +649,7 @@ namespace Wholemy {
 				var AR = TAtanArray;
 				if (AR == null) TAtanArray = AR = new BugNum[7];
 				var N = AR[I];
-				if (N == 0) N = AR[I] = TAtanPoint(Y * new BugNum(1, 2));
+				if (N == 0) N = AR[I] = TAtanOfTan(Y * new BugNum(1, 2));
 				R += N;
 			}
 			if (L != 0) R = PId2 - R;
@@ -615,7 +657,6 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TAtan2(Y, X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TAtan2(BugNum Y, BugNum X) {
 			if (X == 0) {
 				if (Y == 0) return 0;
@@ -629,7 +670,6 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TAsin(X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TAsin(BugNum X) {
 			if (X < 0) X = -X;
 			if (X > 1) return 1;
@@ -637,7 +677,6 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TCos(X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TCos(BugNum X) {
 			if (X < 0) { X = -X; }
 			if (X > PIx2) {
@@ -662,7 +701,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			var I = 0;
-			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -673,34 +712,42 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TSin(X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TSin(BugNum X) {
 			X -= PId2;
 			if (X < 0) { X = -X; }
 			if (X > PIx2) {
-				var P = X / PIx2;
-				X = PIx2 * (P - (int)P);
+				var XP = X / PIx2;
+				X = PIx2 * (XP - (int)XP);
 			}
 			var M = (X > PId2 && X <= PId3);
 			var XX = X * X;
 			var XXX = XX;
-			var R = 1 - (XX / 2);
-			R += (XXX *= XX) / 24;
-			R -= (XXX *= XX) / 720;
-			R += (XXX *= XX) / 40320;
-			R -= (XXX *= XX) / 3628800;
-			R += (XXX *= XX) / 479001600;
-			R -= (XXX *= XX) / 87178291200;
-			R += (XXX *= XX) / 20922789888000;
-			R -= (XXX *= XX) / 6402373705728000;
-			R += (XXX *= XX) / 2432902008176640000;
+			//var R = 1 - (XX / 2);
+			//R += (XXX *= XX) / 24;
+			//R -= (XXX *= XX) / 720;
+			//R += (XXX *= XX) / 40320;
+			//R -= (XXX *= XX) / 3628800;
+			//R += (XXX *= XX) / 479001600;
+			//R -= (XXX *= XX) / 87178291200;
+			//R += (XXX *= XX) / 20922789888000;
+			//R -= (XXX *= XX) / 6402373705728000;
+			//R += (XXX *= XX) / 2432902008176640000;
+			var F = new BugInt(2);
+			var U = -1;
+			var R = 1 + (XX / F * U);
+			uint P = 3;
+			var I = 0;
+			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
+				XXX *= XX;
+				F *= (P++ * P++); U = -U;
+				R += XXX / F * U;
+			}
 			if (R < 0) R = -R;
 			if (M) R = -R;
 			return R;
 		}
 		#endregion
 		#region #method# TSinCos(X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static void TSinCos(BugNum X, out BugNum Sin, out BugNum Cos) {
 			var S = false;
 			var C = new BugNum(0);
@@ -730,7 +777,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			var I = 0;
-			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -743,7 +790,6 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TTan(X) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TTan(BugNum X) {
 			var S = false;
 			BugNum C = 0;
@@ -773,7 +819,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			var I = 0;
-			while (XXX != 0 && F < MaxVenom && I++ < 10) {
+			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -786,32 +832,8 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# TCot(x) 
-		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TCot(BugNum x) {
 			return (1.0 / TTan(x));
-		}
-		#endregion
-		#region #method# Cos(X) 
-		public static BugNum Cos(BugNum X, int Depth = 5) {
-			if (X < 0) { X = -X; }
-			if (X > PIx2) {
-				var XP = X / PIx2;
-				X = PIx2 * (XP - (int)XP);
-			}
-			var M = (X > PId2 && X <= PId3);
-			var XX = X * X;
-			var XXX = XX;
-			var F = new BugInt(2);
-			var U = -1;
-			var R = 1 + (XX / F * U);
-			uint P = 3;
-			while (XXX != 0 && F < MaxVenom) {
-				XXX *= XX;
-				F *= (P++ * P++); U = -U;
-				R += XXX / F * U;
-			}
-			if (M) R = -R;
-			return R;
 		}
 		#endregion
 		#region #int # #explicit operator # (#struct # V)
