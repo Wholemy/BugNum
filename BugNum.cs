@@ -1,3 +1,5 @@
+using static Wholemy.Map;
+
 namespace Wholemy {
 	public struct BugNum {
 		public static readonly BugNum Zer = new BugNum() { Numer = 0, Venom = 1 };
@@ -212,17 +214,18 @@ namespace Wholemy {
 		#endregion
 		#region #operator# % 
 		public static BugNum operator %(BugNum L, BugNum R) {
-			return L - Floor(L / R) * R;
+			if (R.Numer == 0) throw new System.DivideByZeroException("R");
+			var D = new BugNum(L.Numer * R.Venom, L.Venom * R.Numer);
+			var N = D.Numer;
+			if (N < 0) { N += D.Venom - (N % D.Venom); } else { N -= (N % D.Venom); }
+			return L - new BugNum(N, D.Venom) * R;
 		}
 		public static BugNum operator %(BugNum L, int R) {
-			return L - Floor(L / R) * R;
-		}
-		#endregion
-		#region #method# Floor(L) 
-		public static BugNum Floor(BugNum L) {
-			var N = L.Numer;
-			if (N < 0) { N += L.Venom - (N % L.Venom); } else { N -= (N % L.Venom); }
-			return new BugNum(N, L.Venom);
+			if (R == 0) throw new System.DivideByZeroException("R");
+			var D = new BugNum(L.Numer, L.Venom * R);
+			var N = D.Numer;
+			if (N < 0) { N += D.Venom - (N % D.Venom); } else { N -= (N % D.Venom); }
+			return L - new BugNum(N, D.Venom) * R;
 		}
 		#endregion
 		#region #operator# * 
@@ -947,4 +950,3 @@ namespace Wholemy {
 		#endregion
 	}
 }
-
