@@ -1,5 +1,10 @@
 namespace Wholemy {
 	public struct BugNum {
+		public static readonly BugNum Zer = new BugNum() { Numer = 0, Venom = 1 };
+		public static readonly BugNum One = new BugNum() { Numer = 1, Venom = 1 };
+		public static readonly BugNum Two = new BugNum() { Numer = 2, Venom = 1 };
+		public static readonly BugNum Mon = new BugNum() { Numer = -1, Venom = 1 };
+		public static readonly BugNum V05 = new BugNum() { Numer = 1, Venom = 2 };
 		public static readonly BugNum Nan = new BugNum();
 		public static readonly BugNum Pos = new BugNum() { Numer = 1 };
 		public static readonly BugNum Neg = new BugNum() { Numer = -1 };
@@ -19,7 +24,7 @@ namespace Wholemy {
 		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
 #endif
 		#endregion
-		public bool IsInfinity => Venom == 0 && Numer != 0;
+		public bool IsInf => Venom == 0 && Numer != 0;
 		#endregion
 		#region #get# IsNeg 
 		/// <summary>Возвращает истину если значение бесконечно негативно)</summary>
@@ -41,7 +46,7 @@ namespace Wholemy {
 		#endregion
 		public BugInt Numer;
 		public BugInt Venom;
-		public const int MaxDepth = 100;
+		public const int MaxDepth = 50;
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
 		public static BugNum PId2 = PI / 2;
