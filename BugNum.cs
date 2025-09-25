@@ -171,8 +171,6 @@ namespace Wholemy {
 		#endregion
 		#region #method# ToString 
 		public override string ToString() {
-			var MaxDecimalFraction = 100;
-			var T = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
 			var Sign = "";
 			var Numer = this.Numer;
 			var Venom = this.Venom;
@@ -182,46 +180,16 @@ namespace Wholemy {
 				else return "Pos";
 			}
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
-			var Divis = GetGcd(ref Numer, ref Venom);
-			var Integer = Numer / Venom;
-			var Renom = Venom;
-			var Remin = Numer % Renom;
-			if (Remin == 0) return Sign + Integer.ToString();
-			System.Text.StringBuilder SB = new System.Text.StringBuilder();
-			var pRemin = Remin;
-			var pRenom = Renom;
-			if (Renom % 10 == 0) { Renom /= 10; } else { Remin *= 10; }
-			BugInt Nemin;
-
-			var Infin = 0;
-			var pInfin = 0;
-			while (Remin > 0) {
-				Nemin = Remin / Renom;
-				Remin %= Renom;
-				//if (Remin == pRemin && pRenom == Renom)
-				//	return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Integer.ToString() + "." + SB.ToString() + Nemin.ToString() + "...";
-				SB.Append(Nemin);
-				if (SB.Length >= MaxDecimalFraction) {
-					return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Sign + Integer.ToString() + "." + SB.ToString() + "......";
-				}
-				pRemin = Remin; pRenom = Renom;
-				if (Renom % 10 == 0) { Renom /= 10; pInfin = Infin++; } else { Remin *= 10; }
-				//if (Infin == pInfin && Nemin != 0) {
-				//	var len = SB.Length - Infin;
-				//	if (len > 0 && (len % 2) == 0) {
-				//		var S = SB.ToString();
-
-				//		if (Infin > 0) S.Substring(Infin);
-				//		var hlen = len / 2;
-				//		var hS = S.Substring(0, hlen);
-				//		if (S.EndsWith(hS)) {
-				//			SB.Length = Infin + hlen;
-				//			return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Integer.ToString() + "." + SB.ToString() + "...";
-				//		}
-				//	}
-				//}
+			var Integer = BugInt.DivMod(Numer, Venom, out Numer);
+			if (Numer == 0) return Sign + Integer.ToString();
+			var Chars = new char[MaxDepth];
+			var Index = 0;
+			Venom /= 10;
+			while (Index < MaxDepth && Numer > 0 && Venom > 0) {
+				Chars[Index++] = (char)((uint)'0' + (uint)BugInt.DivMod(Numer, Venom, out Numer));
+				Venom /= 10;
 			}
-			return /*Numer.ToString() + ":" + Venom.ToString() + " = " +*/ Sign + Integer.ToString() + "." + SB.ToString();
+			return Sign + Integer.ToString() + "." + new string(Chars, 0, Index);
 		}
 		#endregion
 		#region #operator# / 
