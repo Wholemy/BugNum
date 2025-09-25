@@ -26,6 +26,17 @@ namespace Wholemy {
 		#endregion
 		#region #new# (#uint #[] Value, #int # Count) 
 		private BugInt(uint[] Value, int Count) {
+			if (Value != null) {
+				if (Value.Length == 0) {
+					Value = null;
+				} else if (Count == 1 || Count == -1) {
+					var V = Value[0];
+					if (V <= int.MaxValue) {
+						Count = Count == -1 ? -(int)V : (int)V;
+						Value = null;
+					}
+				}
+			}
 			this.Count = Count;
 			this.Value = Value;
 		}
@@ -1216,8 +1227,10 @@ namespace Wholemy {
 			if (RCount < 0) { RMinus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
-			var LMinus = false; if (LCount < 0) { LMinus = true; LCount = -LCount; }
+			var LMinus = false;
+			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
+			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			var OCount = LCount;
 			var OMinus = LMinus;
 			uint[] OArray = LArray;
@@ -1521,10 +1534,10 @@ namespace Wholemy {
 			var OArray = new uint[cuRes4];
 			var OCount = 0;
 			while (OCount < LCount) { OArray[OCount] = LArray[OCount]; OCount++; }
-			var r = new BugInt(OArray, LCount);
-			BugInt b = new BugInt(new uint[cuRes4], 0);
+			var r = new BugInt() { Value = OArray, Count = LCount };
+			BugInt b = new BugInt() { Value = new uint[cuRes4], Count = 0 };
 			var AArray = new uint[cuRes4]; AArray[0] = 1u;
-			BugInt a = new BugInt(AArray, 1);
+			BugInt a = new BugInt() { Value = AArray, Count = 1 };
 			BugInt t;
 			if ((E & 1) == 0) Minus = false;
 			ee = E;
