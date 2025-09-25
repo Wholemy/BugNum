@@ -1,3 +1,5 @@
+using static Wholemy.Map;
+
 namespace Wholemy {
 	public struct BugNum {
 		public static readonly BugNum Zer = new BugNum() { Numer = 0, Venom = 1 };
@@ -180,16 +182,24 @@ namespace Wholemy {
 				else return "Pos";
 			}
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
-			var Integer = BugInt.DivMod(Numer, Venom, out Numer);
-			if (Numer == 0) return Sign + Integer.ToString();
-			var Chars = new char[MaxDepth];
-			var Index = 0;
-			Venom /= 10;
-			while (Index < MaxDepth && Numer > 0 && Venom > 0) {
-				Chars[Index++] = (char)((uint)'0' + (uint)BugInt.DivMod(Numer, Venom, out Numer));
-				Venom /= 10;
+			if (Venom > 0) {
+				Sign += BugInt.DivMod(Numer, Venom, out var Num).ToString();
+				Numer = Num * MaxVenom / Venom;
+				if (Numer > 0) {
+					Sign += '.';
+					var Zeros = MaxDepth - Numer.Digits;
+					if (Zeros > 0) Sign += new string('0', Zeros);
+					Zeros = Numer.Zerone; if (Zeros < 0) Zeros = -Zeros;
+					if (Zeros > 0) Numer /= BugInt.Pow(10u, Zeros);
+					Sign += Numer.ToString();
+				}
+			} else {
+				Venom = -Venom;
+				Sign += Numer.ToString();
+				Sign += '.';
+				Sign += Venom.ToString();
 			}
-			return Sign + Integer.ToString() + "." + new string(Chars, 0, Index);
+			return Sign;
 		}
 		#endregion
 		#region #operator# / 
@@ -312,7 +322,7 @@ namespace Wholemy {
 #endif
 		#endregion
 		public static BugNum operator +(BugNum value) {
-			return new BugNum(BugInt.Abs(value.Numer), value.Venom);
+			return new BugNum(+value.Numer, value.Venom);
 		}
 		#endregion
 		#region #operator# -(#struct # value)
@@ -868,43 +878,27 @@ namespace Wholemy {
 				var Numer = this.Numer;
 				if (Numer < 0) { Numer = -Numer; Minus = true; }
 				var Venom = this.Venom;
-				var Depth = 0;
-				if (Venom > 0/* && Depth == 0*/) {
-					BugInt.DivMod(Numer, Venom, out var Num);
-					var Ven = Venom;
-					var D = 0;
-					var MD = MaxDepth;
-					while (Num > 0 && D < MD) {
-						D++;
-						Ven = BugInt.DivMod(Ven, 10u, out var Mod);
-						if (Ven == 0) { if (Mod > 0) D = -D; break; }
-						BugInt.DivMod(Num, Ven, out Num);
-					}
-					Depth = D;
+				if (Venom == 0) {
+					if (Numer == 0) return double.NaN;
+					if (Numer < 0) return double.NegativeInfinity;
+					return double.PositiveInfinity;
 				}
-				if (Depth != 0) {
-					var D = BugInt.Pow(10, Depth < 0 ? MaxDepth : Depth);
-					if (Venom == 0) { Venom = D; } else if (Venom != D) {
-						Numer = D / Venom * Numer;
-						Venom = D;
+				var R = 0.0;
+				if (Venom > 0) {
+					var Int = BugInt.DivMod(Numer, Venom, out var Num);
+					Numer = Num * MaxVenom / Venom;
+					var Zeros = MaxDepth - Numer.Digits;
+					R = Numer.ToDouble();
+					while (Zeros-- > 0) {
+						R /= 10;
 					}
-					var Int = Numer;
-					if (Venom > 0) {
-						Int /= Venom;
-						Numer -= Int * Venom;
-					}
-					var R = Numer.ToDouble();
 					if (Int > 0) R += (ulong)Int;
-					if (Minus) R = -R;
-					return R;
 				} else {
-					var Int = Numer;
-					if (Venom > 0) Int /= Venom;
-					var R = 0.0;
-					if (Int > 0) R += (ulong)Int;
-					if (Minus) R = -R;
-					return R;
+					R = (-Venom).ToDouble();
+					if (Numer > 0) R += (ulong)Numer;
 				}
+				if (Minus) R = -R;
+				return R;
 			}
 		}
 		#endregion
