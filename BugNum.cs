@@ -50,7 +50,7 @@ namespace Wholemy {
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
 		public static BugNum PId2 = PI / 2;
-		public static BugNum PId3 = PI + PId2;
+		public static BugNum PId2x3 = PI + PId2;
 		public static BugNum PIx2 = PI * 2;
 		public static BugNum PIx4 = PI * 4;
 		#region #new# (Value) 
@@ -96,7 +96,7 @@ namespace Wholemy {
 			value = value.Trim();
 			value = value.Replace("_", "");
 			value = value.Replace(" ", "");
-			value.ToLower();
+			value = value.ToLower();
 			if (value.Equals("nan")) { this.Venom = 0; this.Numer = 0; return; }
 			if (value.Equals("neg")) { this.Venom = 0; this.Numer = -1; return; }
 			if (value.Equals("pos")) { this.Venom = 0; this.Numer = 1; return; }
@@ -177,7 +177,7 @@ namespace Wholemy {
 			if (Venom == 0) {
 				if (Numer == 0) return "Nan";
 				if (Numer < 0) return "Neg";
-				else return "Pos";
+				return "Pos";
 			}
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
 			if (Venom > 0) {
@@ -371,7 +371,18 @@ namespace Wholemy {
 		#endregion
 		#region #method# Sqrt(X, Y, Depth = MaxDepth) 
 		public static BugNum Sqrt(BugNum X, BugNum Y, int Depth = MaxDepth) {
-			return Sqrt(X * X + Y * Y, Depth);
+			var S = X * X + Y * Y;
+			if (S == 0) return 0; if (S < 0) return 1;
+			var SS = S.Numer;
+			var VV = S.Venom;
+			var SV = SS * BugInt.Pow(10, Depth * 2) / VV;
+			if (SV > 1) {
+				var TT = SV;
+				var XX = SV / 2u;
+				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
+				SS = TT;
+			}
+			return new BugNum(SS, BugInt.Pow(10, Depth));
 		}
 		#endregion
 		#region #method# Sqrt(S, Depth = MaxDepth) 
@@ -381,10 +392,10 @@ namespace Wholemy {
 			var VV = S.Venom;
 			var SV = SS * BugInt.Pow(10, Depth * 2) / VV;
 			if (SV > 1) {
-				var T = SV;
-				var X = SV / 2u;
-				while (T != X) { T = X; X = (X + (SV / X)) / 2u; }
-				SS = T;
+				var TT = SV;
+				var XX = SV / 2u;
+				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
+				SS = TT;
 			}
 			return new BugNum(SS, BugInt.Pow(10, Depth));
 		}
@@ -604,7 +615,7 @@ namespace Wholemy {
 				var XP = x / PIx2;
 				x = PIx2 * (XP - (int)XP);
 			}
-			var M = (x > PId2 && x <= PId3);
+			var M = (x > PId2 && x <= PId2x3);
 			var XX = x * x;
 			var XXX = XX;
 			//var R = 1 - (XX / 2);
@@ -692,7 +703,7 @@ namespace Wholemy {
 				var XP = X / PIx2;
 				X = PIx2 * (XP - (int)XP);
 			}
-			var M = (X > PId2 && X <= PId3);
+			var M = (X > PId2 && X <= PId2x3);
 			var XX = X * X;
 			var XXX = XX;
 			//var R = 1 - (XX / 2);
@@ -728,7 +739,7 @@ namespace Wholemy {
 				var XP = X / PIx2;
 				X = PIx2 * (XP - (int)XP);
 			}
-			var M = (X > PId2 && X <= PId3);
+			var M = (X > PId2 && X <= PId2x3);
 			var XX = X * X;
 			var XXX = XX;
 			//var R = 1 - (XX / 2);
@@ -768,7 +779,7 @@ namespace Wholemy {
 				var XP = x / PIx2;
 				x = PIx2 * (XP - (int)XP);
 			}
-			var M = (x > PId2 && x <= PId3);
+			var M = (x > PId2 && x <= PId2x3);
 			var XX = x * x;
 			var XXX = XX;
 			//var R = 1 - (XX / 2);
@@ -810,7 +821,7 @@ namespace Wholemy {
 				var XP = x / PIx2;
 				x = PIx2 * (XP - (int)XP);
 			}
-			var M = (x > PId2 && x <= PId3);
+			var M = (x > PId2 && x <= PId2x3);
 			var XX = x * x;
 			var XXX = XX;
 			//var R = 1 - (XX / 2);
@@ -939,8 +950,6 @@ namespace Wholemy {
 		/// <param name="AY">Конец по оси Y)</param>
 		/// <returns>Возвращает корень поворота от 0.0 до 1.0)</returns>
 		public static BugNum GetaR1(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
-			//var A = TAtan2(AY - CY, AX - CX);
-			//var B = TAtan2(BY - CY, BX - CX);
 			var R = (new BugNum(1, 2) / PI) * (TAtan2(AY - CY, AX - CX) - TAtan2(BY - CY, BX - CX));
 			if (R < 0) R += 1;
 			return R;
@@ -948,4 +957,3 @@ namespace Wholemy {
 		#endregion
 	}
 }
-
