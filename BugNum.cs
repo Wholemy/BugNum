@@ -1,4 +1,13 @@
 namespace Wholemy {
+	/// <summary>
+	/// Большое дробное число, на базе делимого и делителя)
+	/// </summary>
+	/// <remarks>
+	/// При MaxDepth равном 100, эффективная точность в вычислениях
+	/// тригонометрических функций будет чуть более 50 знаков после запятой)
+	/// Единственный рациональный способ сделать разную глубину, дублировать все содержимое
+	/// структуры с другим именованием полностью и дополнить методы конвертирования значений из других структур)
+	/// </remarks>
 	public struct BugNum {
 		public static readonly BugNum Zer = new BugNum() { Numer = 0, Venom = 1 };
 		public static readonly BugNum One = new BugNum() { Numer = 1, Venom = 1 };
@@ -44,15 +53,46 @@ namespace Wholemy {
 		#endregion
 		public bool IsPos => Venom == 0 && Numer > 0;
 		#endregion
+		#region #field# Numer 
 		public BugInt Numer;
+		#endregion
+		#region #field# Venom 
 		public BugInt Venom;
-		public const int MaxDepth = 50;
+		#endregion
+		#region #field# MaxDepth 
+		/// <summary>Максимальная глубина числа для его округления при инициализации)</summary>
+		public static int MaxDepth = 50;
+		#endregion
+		#region #field# MaxVenom 
 		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
+		#endregion
+		#region #field# MaxChars 
+		/// <summary>
+		/// Максимальное количество выводимых в строку символов дроби) Значение больше MaxDepth не достижимо)
+		/// </summary>
+		/// <remarks>
+		/// Как правило половина от дробной глубины числа эффективна при вычислении 
+		/// значений сложных тригонометрических функций, затем и нужно это ограничение)
+		/// Например, для вычисления квадратного корня, требуется вдвое больше число,
+		/// но результат у него достоверный по всей вычисляемой длине дроби)
+		/// </remarks>
+		public static int MaxChars = MaxDepth / 2;
+		#endregion
+		#region #field# PI 
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
+		#endregion
+		#region #field# PId2 
 		public static BugNum PId2 = PI / 2;
+		#endregion
+		#region #field# PId2x3 
 		public static BugNum PId2x3 = PI + PId2;
+		#endregion
+		#region #field# PIx2 
 		public static BugNum PIx2 = PI * 2;
+		#endregion
+		#region #field# PIx4 
 		public static BugNum PIx4 = PI * 4;
+		#endregion
 		#region #new# (Value) 
 		#region #through# 
 #if TRACE
@@ -185,17 +225,22 @@ namespace Wholemy {
 				Numer = Num * MaxVenom / Venom;
 				if (Numer > 0) {
 					Sign += '.';
+					var Decimal = "";
 					var Zeros = MaxDepth - Numer.Digits;
-					if (Zeros > 0) Sign += new string('0', Zeros);
+					if (Zeros > 0) Decimal += new string('0', Zeros);
 					Zeros = Numer.Zerone; if (Zeros < 0) Zeros = -Zeros;
 					if (Zeros > 0) Numer /= BugInt.Pow(10u, Zeros);
-					Sign += Numer.ToString();
+					Decimal += Numer.ToString();
+					if (Decimal.Length > MaxChars) Decimal = Decimal.Substring(0, MaxChars);
+					Sign += Decimal;
 				}
 			} else {
 				Venom = -Venom;
 				Sign += Numer.ToString();
 				Sign += '.';
-				Sign += Venom.ToString();
+				var Decimal = Venom.ToString();
+				if (Decimal.Length > MaxChars) Decimal = Decimal.Substring(0, MaxChars);
+				Sign += Decimal;
 			}
 			return Sign;
 		}
@@ -334,8 +379,8 @@ namespace Wholemy {
 			return new BugNum(-value.Numer, value.Venom);
 		}
 		#endregion
-		#region #method# SqrtDebug(S, Depth = MaxDepth) 
-		public static BugNum SqrtDebug(BugNum S, int Depth = MaxDepth) {
+		#region #method# SqrtDebug(S) 
+		public static BugNum SqrtDebug(BugNum S) {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
@@ -348,8 +393,8 @@ namespace Wholemy {
 				Ret = T;
 			}
 			var VenomInt = ((BugNum)VV);
-			var VVV = BugInt.Pow(10, Depth);
-			var D = Depth;
+			var VVV = BugInt.Pow(10, MaxDepth);
+			var D = MaxDepth;
 			while (--D >= 0) {
 				Ret *= 10;
 				VenomInt /= 100;
@@ -370,34 +415,34 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# Sqrt(X, Y, Depth = MaxDepth) 
-		public static BugNum Sqrt(BugNum X, BugNum Y, int Depth = MaxDepth) {
+		public static BugNum Sqrt(BugNum X, BugNum Y) {
 			var S = X * X + Y * Y;
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
-			var SV = SS * BugInt.Pow(10, Depth * 2) / VV;
+			var SV = SS * BugInt.Pow(10, MaxDepth * 2) / VV;
 			if (SV > 1) {
 				var TT = SV;
 				var XX = SV / 2u;
 				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
 				SS = TT;
 			}
-			return new BugNum(SS, BugInt.Pow(10, Depth));
+			return new BugNum(SS, BugInt.Pow(10, MaxDepth));
 		}
 		#endregion
 		#region #method# Sqrt(S, Depth = MaxDepth) 
-		public static BugNum Sqrt(BugNum S, int Depth = MaxDepth) {
+		public static BugNum Sqrt(BugNum S) {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
-			var SV = SS * BugInt.Pow(10, Depth * 2) / VV;
+			var SV = SS * BugInt.Pow(10, MaxDepth * 2) / VV;
 			if (SV > 1) {
 				var TT = SV;
 				var XX = SV / 2u;
 				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
 				SS = TT;
 			}
-			return new BugNum(SS, BugInt.Pow(10, Depth));
+			return new BugNum(SS, BugInt.Pow(10, MaxDepth));
 		}
 		#endregion
 		#region #operator # == (#struct # L, #struct # R) 
@@ -453,10 +498,11 @@ namespace Wholemy {
 		/// <param name="BX">Старт и возвращаемый результат поворота по оси X)</param>
 		/// <param name="BY">Старт и возвращаемый результат поворота по оси Y)</param>
 		/// <param name="AR">Корень четверти от 0.0 до 4.0 отрицательная в обратную сторону)</param>
-		public static bool Rotate(BugNum CX, BugNum CY, ref BugNum BX, ref BugNum BY, BugNum AR, int ED = 56) {
+		public static bool Rotate(BugNum CX, BugNum CY, ref BugNum BX, ref BugNum BY, BugNum AR) {
+			var ED = MaxDepth * 2;
 			if (AR == 0) return false;
 			var D = ED;
-			var Len = Sqrt(CX - BX, CY - BY, D);
+			var Len = Sqrt(CX - BX, CY - BY);
 			if (Len == 0) return false;
 			int R = (int)AR;
 			if (R < 0) { AR = R - AR; R = R % 4 + 4; } else { AR = AR - R; R = R % 4; }
@@ -467,28 +513,24 @@ namespace Wholemy {
 			var EX = BX; var EY = BY; BX = MX; BY = MY;
 			if (AR > 0 && R >= 0 && R < 3) { EX = CY - MY + CX; EY = MX - CX + CY; } // 90
 			while (AR > 0 && AR < 1 && ED > 0) {
-				var L = Sqrt(MX - EX, MY - EY, D);
+				var L = Sqrt(MX - EX, MY - EY);
 				if (L == 0) break;
 				var ll = L / 2;
 				if (AR < new BugNum(1, 2)) {
 					EX = MX + (EX - MX) / L * ll;
 					EY = MY + (EY - MY) / L * ll;
-					ll = Sqrt(CX - EX, CY - EY, D);
+					ll = Sqrt(CX - EX, CY - EY);
 					EX = CX + (EX - CX) / ll * Len;
 					EY = CY + (EY - CY) / ll * Len;
 					AR = AR * 2;
-					EX = EX.Round(D);
-					EY = EY.Round(D);
 					BX = EX;
 					BY = EY;
 				} else {
 					MX = EX + (MX - EX) / L * ll;
 					MY = EY + (MY - EY) / L * ll;
-					ll = Sqrt(CX - MX, CY - MY, D);
+					ll = Sqrt(CX - MX, CY - MY);
 					MX = CX + (MX - CX) / ll * Len;
 					MY = CY + (MY - CY) / ll * Len;
-					MX = MX.Round(D);
-					MY = MY.Round(D);
 					AR = (AR - new BugNum(1, 2)) * 2; BX = MX; BY = MY;
 				}
 				ED--;
@@ -507,22 +549,23 @@ namespace Wholemy {
 		/// <returns>Возвращает корень поворота от 0.0 до 4.0)</returns>
 		/// <exception cref="System.InvalidProgramException">
 		/// Возникает в случае непредусмотренного состояния, требует исправления)</exception>
-		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY, int ED = 56) {
+		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
+			var ED = MaxDepth * 2;
 			var D = ED;
-			var BL = Sqrt(CX - BX, CY - BY, D);
+			var BL = Sqrt(CX - BX, CY - BY);
 			if (BL == 0) return 0;
-			var AL = Sqrt(CX - AX, CY - AY, D);
+			var AL = Sqrt(CX - AX, CY - AY);
 			if (AL == 0) return 0;
 			AX = CX + (AX - CX) / AL * BL;
 			AY = CY + (AY - CY) / AL * BL;
-			AL = Sqrt(CX - AX, CY - AY, D);
+			AL = Sqrt(CX - AX, CY - AY);
 			var X1 = CY - BY + CX; var Y1 = BX - CX + CY; // 90
 			var X2 = CX - BX + CX; var Y2 = CY - BY + CY; // 180
 			var X3 = BY - CY + CX; var Y3 = CX - BX + CY; // 270
-			var L0 = Sqrt(BX - AX, BY - AY, D);
-			var L1 = Sqrt(X1 - AX, Y1 - AY, D);
-			var L2 = Sqrt(X2 - AX, Y2 - AY, D);
-			var L3 = Sqrt(X3 - AX, Y3 - AY, D);
+			var L0 = Sqrt(BX - AX, BY - AY);
+			var L1 = Sqrt(X1 - AX, Y1 - AY);
+			var L2 = Sqrt(X2 - AX, Y2 - AY);
+			var L3 = Sqrt(X3 - AX, Y3 - AY);
 			BugNum R = 0, MX = 0, MY = 0, EX = 0, EY = 0;
 			if (L0 < L2 && L0 < L3 && L1 < L2 && L1 <= L3) {
 				R = 0; MX = BX; MY = BY; EX = X1; EY = Y1;
@@ -534,15 +577,15 @@ namespace Wholemy {
 				R = 3; MX = X3; MY = Y3; EX = BX; EY = BY; L1 = L0; L0 = L3;
 			} else { throw new System.InvalidProgramException(); }
 			BugNum AR = 1;
-			while (L0 > 0 && (L2 = Sqrt(MX - EX, MY - EY, D)) > 0) {
+			while (L0 > 0 && (L2 = Sqrt(MX - EX, MY - EY)) > 0) {
 				AR /= 2;
 				L3 = L2 / 2;
 				BX = MX + (EX - MX) / L2 * L3;
 				BY = MY + (EY - MY) / L2 * L3;
-				L2 = Sqrt(CX - BX, CY - BY, D);
+				L2 = Sqrt(CX - BX, CY - BY);
 				BX = CX + (BX - CX) / L2 * BL;
 				BY = CY + (BY - CY) / L2 * BL;
-				L3 = Sqrt(AX - BX, AY - BY, D);
+				L3 = Sqrt(AX - BX, AY - BY);
 				if (L0 < L1) {
 					if (EX == BX && EY == BY) break; if (L1 <= L3) break;
 					EX = BX; EY = BY; L1 = L3;
@@ -632,8 +675,9 @@ namespace Wholemy {
 			var U = -1;
 			var R = 1 + (XX / F * U);
 			uint P = 3;
-			var I = 0;
-			while (XXX != 0 && I++ < MaxDepth) {
+			BugNum RR = 0;
+			while (XXX != 0 && RR != R && F < MaxVenom) {
+				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -720,8 +764,9 @@ namespace Wholemy {
 			var U = -1;
 			var R = 1 + (XX / F * U);
 			uint P = 3;
-			var I = 0;
-			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
+			BugNum RR = 0;
+			while (XXX != 0 && RR != R && F < MaxVenom) {
+				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -756,8 +801,9 @@ namespace Wholemy {
 			var U = -1;
 			var R = 1 + (XX / F * U);
 			uint P = 3;
-			var I = 0;
-			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
+			BugNum RR = 0;
+			while (XXX != 0 && RR != R && F < MaxVenom) {
+				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -796,8 +842,9 @@ namespace Wholemy {
 			var U = -1;
 			var R = 1 + (XX / F * U);
 			uint P = 3;
-			var I = 0;
-			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
+			BugNum RR = 0;
+			while (XXX != 0 && RR != R && F < MaxVenom) {
+				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -839,7 +886,9 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			var I = 0;
-			while (XXX != 0 && /*F < MaxVenom && */I++ < 10) {
+			BugNum RR = 0;
+			while (XXX != 0 && RR != R && F < MaxVenom) {
+				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
 				R += XXX / F * U;
@@ -953,6 +1002,18 @@ namespace Wholemy {
 			var R = (new BugNum(1, 2) / PI) * (TAtan2(AY - CY, AX - CX) - TAtan2(BY - CY, BX - CX));
 			if (R < 0) R += 1;
 			return R;
+		}
+		#endregion
+		#region #method# EqualDigits(L, R) 
+		public static int EqualDigits(BugNum L, BugNum R) {
+			var LS = L.ToString();
+			var RS = R.ToString();
+			var C = LS.Length;
+			var RC = RS.Length;
+			if (C > RC) C = RC;
+			var I = 0;
+			while (I < C) { if (LS[I] == RS[I]) I++; else break; }
+			return I;
 		}
 		#endregion
 	}
