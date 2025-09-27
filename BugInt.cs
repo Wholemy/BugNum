@@ -1,15 +1,22 @@
 namespace Wholemy {
+	/// <summary>Большое целое число)</summary>
 	public struct BugInt {
 		#region #field# Count 
-		/// <summary>
-		/// Количество элементов в массиве, может быть больше чем размер массива,
-		/// знак числа меньше нуля требует инверсии для получения количества)
-		/// Содержит значение, если массив не указан, массив создается в методе)
-		/// </summary>
+		/// <summary>Количество элементов в массиве) Содержит значение, если массив не указан)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
 		private int Count;
 		#endregion
 		#region #field# Value 
-		/// <summary>Массив значения, если нулевой, значение содержит счетчик)</summary>
+		/// <summary>Массив значения, если нулевой, значение содержит Count)</summary>
+		#region #invisible# 
+#if TRACE
+		[System.Diagnostics.DebuggerBrowsable(System.Diagnostics.DebuggerBrowsableState.Never)]
+#endif
+		#endregion
 		private uint[] Value;
 		#endregion
 		#region #property# Length 
@@ -165,6 +172,8 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# ToString 
+		/// <summary>Возвращает строковое значение числа в десятичном виде)</summary>
+		/// <returns>Строковое значение числа в десятичном виде)</returns>
 		public override string ToString() {
 			var Count = this.Count;
 			if (Count == 0) return "0";
@@ -1410,6 +1419,7 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #method# Mul(L, R) 
+		/// <summary>Умножение двух чисел, результат на фиксированной длине собственного массива)</summary>
 		private void Mul(BugInt L, BugInt R) {
 			var RCount = R.Count;
 			var RMinus = false;
@@ -1603,6 +1613,9 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #uint # #get#[#int # I] 
+		/// <summary>Возвращвет элемент числа, значение по указанному индексу)</summary>
+		/// <param name="I">Индекс значения)</param>
+		/// <returns>32 битное число без знака)</returns>
 		public uint this[int I] {
 			get {
 				var C = this.Count;
@@ -1616,6 +1629,7 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #uint#[] #get# Array 
+		/// <summary>Возвращает копию массива значения)</summary>
 		public uint[] Array {
 			get {
 				var C = this.Count;
@@ -1629,6 +1643,7 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #bool# #get# Sign 
+		/// <summary>Возвращает знак числа, положительный больше или равен нулю)</summary>
 		public bool Sign => this.Count < 0;
 		#endregion
 		#region #method# Bit(Count) 
