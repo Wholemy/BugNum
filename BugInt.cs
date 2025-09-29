@@ -141,7 +141,7 @@ namespace Wholemy {
 		}
 		#endregion
 		#region #new# (#string # Value) 
-		public unsafe BugInt(string Value) {
+		public BugInt(string Value) {
 			var T = System.Globalization.CultureInfo.InvariantCulture.NumberFormat;
 			Value = Value.Trim();
 			Value = Value.Replace(T.NumberGroupSeparator, "");
@@ -151,20 +151,18 @@ namespace Wholemy {
 			var I = 0;
 			var L = Value.Length;
 			int Pow = 1;
-			fixed (char* V = Value) {
-				while (I < L) {
-					var C = V[I];
-					if (C >= '0' && C <= '9') { break; } else if (C == '~') { Inver = true; I++; } else if (C == '-') { Minus = true; I++; } else { I++; }
+			while (I < L) {
+				var C = Value[I];
+				if (C >= '0' && C <= '9') { break; } else if (C == '~') { Inver = true; I++; } else if (C == '-') { Minus = true; I++; } else { I++; }
+			}
+			while (I < L) {
+				var C = Value[I];
+				if (C >= '0' && C <= '9') {
+					Ret *= 10;
+					Ret += new BugInt(C - 48);
+					Pow *= 10;
 				}
-				while (I < L) {
-					var C = V[I];
-					if (C >= '0' && C <= '9') {
-						Ret *= 10;
-						Ret += new BugInt(C - 48);
-						Pow *= 10;
-					}
-					I++;
-				}
+				I++;
 			}
 			if (Minus) { Ret = -Ret; }
 			if (Inver) { Ret = ~Ret; }
@@ -190,7 +188,7 @@ namespace Wholemy {
 			var CArray = new char[CCount];
 			var CIndex = CCount - 1;
 			var ACount = 0;
-			Next:
+		Next:
 			var A = 0u;
 			while (Count-- > 0) {
 				var OO = (ulong)A;
@@ -232,7 +230,7 @@ namespace Wholemy {
 			var CCount = Count * 11;
 			var ACount = 0;
 			var R = 0.0;
-			Next:
+		Next:
 			var A = 0u;
 			while (Count-- > 0) {
 				var OO = (ulong)A;
@@ -271,7 +269,7 @@ namespace Wholemy {
 				if (Count == 0) return 0;
 				var ACount = 0;
 				var R = 0;
-				Next:
+			Next:
 				var A = 0u;
 				while (Count-- > 0) {
 					var OO = (ulong)A;
@@ -311,7 +309,7 @@ namespace Wholemy {
 				var ACount = 0;
 				var R = 0;
 				var One = false;
-				Next:
+			Next:
 				var A = 0u;
 				while (Count-- > 0) {
 					var OO = (ulong)A;
