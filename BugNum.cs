@@ -59,14 +59,20 @@ namespace Wholemy {
 		#region #field# Venom 
 		public BugInt Venom;
 		#endregion
-		#region #field# MaxDepth 
+		#region #property# MaxDepth 
 		/// <summary>Максимальная глубина числа для его округления при инициализации)</summary>
-		public static int MaxDepth = 50;
+		public static int MaxDepth {
+			get { return maxDepth; }
+			set { if (value < 0) value = -value; maxDepth = value; maxVenom = BugInt.Pow(10, value); if (maxChars > value) maxChars = value; }
+		}
 		#endregion
-		#region #field# MaxVenom 
-		public static BugInt MaxVenom = BugInt.Pow(10, MaxDepth);
+		#region #field# maxDepth 
+		private static int maxDepth = 50;
 		#endregion
-		#region #field# MaxChars 
+		#region #field# maxVenom 
+		private static BugInt maxVenom = BugInt.Pow(10, maxDepth);
+		#endregion
+		#region #field# maxChars 
 		/// <summary>
 		/// Максимальное количество выводимых в строку символов дроби) Значение больше MaxDepth не достижимо)
 		/// </summary>
@@ -76,7 +82,11 @@ namespace Wholemy {
 		/// Например, для вычисления квадратного корня, требуется вдвое больше число,
 		/// но результат у него достоверный по всей вычисляемой длине дроби)
 		/// </remarks>
-		public static int MaxChars = MaxDepth / 2;
+		public static int MaxChars {
+			get { return maxChars; }
+			set { if (value < 0) value = -value; if (value > maxDepth) maxChars = maxDepth; else maxChars = value; }
+		}
+		private static int maxChars = maxDepth / 2;
 		#endregion
 		#region #field# PI 
 		public static BugNum PI = new BugNum("3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679");
@@ -109,7 +119,7 @@ namespace Wholemy {
 			if (Venom == 0) {
 				Venom = 1;
 			} else {
-				var MV = MaxVenom;
+				var MV = maxVenom;
 				if (Venom < 0) {
 					if (Venom > MV) {
 						var P = Venom / MV;
@@ -146,7 +156,7 @@ namespace Wholemy {
 			if (dot < 0) { this.Numer = new BugInt(value); this.Venom = 1; return; }
 			value = value.Replace(dotStr, "");
 			var Depth = value.Length - dot;
-			if (Depth > MaxDepth) { Depth = MaxDepth; value = value.Substring(0, Depth + dot); }
+			if (Depth > maxDepth) { Depth = maxDepth; value = value.Substring(0, Depth + dot); }
 			var Numer = new BugInt(value);
 			var Venom = BugInt.Pow(10, Depth);
 			this.Numer = Numer;
@@ -222,16 +232,16 @@ namespace Wholemy {
 			if (Numer < 0) { Numer = -Numer; Sign = "-"; }
 			if (Venom > 0) {
 				Sign += BugInt.DivMod(Numer, Venom, out var Num).ToString();
-				Numer = Num * MaxVenom / Venom;
+				Numer = Num * maxVenom / Venom;
 				if (Numer > 0) {
 					Sign += '.';
 					var Decimal = "";
-					var Zeros = MaxDepth - Numer.Digits;
+					var Zeros = maxDepth - Numer.Digits;
 					if (Zeros > 0) Decimal += new string('0', Zeros);
 					Zeros = Numer.Zerone; if (Zeros < 0) Zeros = -Zeros;
 					if (Zeros > 0) Numer /= BugInt.Pow(10u, Zeros);
 					Decimal += Numer.ToString();
-					if (Decimal.Length > MaxChars) Decimal = Decimal.Substring(0, MaxChars);
+					if (Decimal.Length > maxChars) Decimal = Decimal.Substring(0, maxChars);
 					Sign += Decimal;
 				}
 			} else {
@@ -239,7 +249,7 @@ namespace Wholemy {
 				Sign += Numer.ToString();
 				Sign += '.';
 				var Decimal = Venom.ToString();
-				if (Decimal.Length > MaxChars) Decimal = Decimal.Substring(0, MaxChars);
+				if (Decimal.Length > maxChars) Decimal = Decimal.Substring(0, maxChars);
 				Sign += Decimal;
 			}
 			return Sign;
@@ -393,8 +403,8 @@ namespace Wholemy {
 				Ret = T;
 			}
 			var VenomInt = ((BugNum)VV);
-			var VVV = BugInt.Pow(10, MaxDepth);
-			var D = MaxDepth;
+			var VVV = BugInt.Pow(10, maxDepth);
+			var D = maxDepth;
 			while (--D >= 0) {
 				Ret *= 10;
 				VenomInt /= 100;
@@ -420,14 +430,14 @@ namespace Wholemy {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
-			var SV = SS * BugInt.Pow(10, MaxDepth * 2) / VV;
+			var SV = SS * BugInt.Pow(10, maxDepth * 2) / VV;
 			if (SV > 1) {
 				var TT = SV;
 				var XX = SV / 2u;
 				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
 				SS = TT;
 			}
-			return new BugNum(SS, BugInt.Pow(10, MaxDepth));
+			return new BugNum(SS, BugInt.Pow(10, maxDepth));
 		}
 		#endregion
 		#region #method# Sqrt(S, Depth = MaxDepth) 
@@ -435,14 +445,14 @@ namespace Wholemy {
 			if (S == 0) return 0; if (S < 0) return 1;
 			var SS = S.Numer;
 			var VV = S.Venom;
-			var SV = SS * BugInt.Pow(10, MaxDepth * 2) / VV;
+			var SV = SS * BugInt.Pow(10, maxDepth * 2) / VV;
 			if (SV > 1) {
 				var TT = SV;
 				var XX = SV / 2u;
 				while (TT != XX) { TT = XX; XX = (XX + (SV / XX)) / 2u; }
 				SS = TT;
 			}
-			return new BugNum(SS, BugInt.Pow(10, MaxDepth));
+			return new BugNum(SS, BugInt.Pow(10, maxDepth));
 		}
 		#endregion
 		#region #operator # == (#struct # L, #struct # R) 
@@ -499,7 +509,7 @@ namespace Wholemy {
 		/// <param name="BY">Старт и возвращаемый результат поворота по оси Y)</param>
 		/// <param name="AR">Корень четверти от 0.0 до 4.0 отрицательная в обратную сторону)</param>
 		public static bool Rotate(BugNum CX, BugNum CY, ref BugNum BX, ref BugNum BY, BugNum AR) {
-			var ED = MaxDepth * 2;
+			var ED = maxDepth * 2;
 			if (AR == 0) return false;
 			var D = ED;
 			var Len = Sqrt(CX - BX, CY - BY);
@@ -550,7 +560,7 @@ namespace Wholemy {
 		/// <exception cref="System.InvalidProgramException">
 		/// Возникает в случае непредусмотренного состояния, требует исправления)</exception>
 		public static BugNum GetAR(BugNum CX, BugNum CY, BugNum BX, BugNum BY, BugNum AX, BugNum AY) {
-			var ED = MaxDepth * 2;
+			var ED = maxDepth * 2;
 			var D = ED;
 			var BL = Sqrt(CX - BX, CY - BY);
 			if (BL == 0) return 0;
@@ -650,7 +660,7 @@ namespace Wholemy {
 		public static BugNum TOfTan(BugNum X) {
 			var S = false;
 			BugNum C = 0;
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
@@ -676,7 +686,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			BugNum RR = 0;
-			while (XXX != 0 && RR != R && F < MaxVenom) {
+			while (XXX != 0 && RR != R && F < maxVenom) {
 				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
@@ -703,7 +713,7 @@ namespace Wholemy {
 			if (Y < 0) Y++;
 			var XX = Y / new BugNum(2);
 			X = (X - XX) / (X * XX + 1);
-			Next:
+		Next:
 			XX = X * X;
 			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
 			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
@@ -765,7 +775,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			BugNum RR = 0;
-			while (XXX != 0 && RR != R && F < MaxVenom) {
+			while (XXX != 0 && RR != R && F < maxVenom) {
 				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
@@ -802,7 +812,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			BugNum RR = 0;
-			while (XXX != 0 && RR != R && F < MaxVenom) {
+			while (XXX != 0 && RR != R && F < maxVenom) {
 				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
@@ -817,7 +827,7 @@ namespace Wholemy {
 		public static void TSinCos(BugNum X, out BugNum Sin, out BugNum Cos) {
 			var S = false;
 			var C = new BugNum(0);
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
@@ -843,7 +853,7 @@ namespace Wholemy {
 			var R = 1 + (XX / F * U);
 			uint P = 3;
 			BugNum RR = 0;
-			while (XXX != 0 && RR != R && F < MaxVenom) {
+			while (XXX != 0 && RR != R && F < maxVenom) {
 				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
@@ -860,7 +870,7 @@ namespace Wholemy {
 		public static BugNum TTan(BugNum X) {
 			var S = false;
 			BugNum C = 0;
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
@@ -887,7 +897,7 @@ namespace Wholemy {
 			uint P = 3;
 			var I = 0;
 			BugNum RR = 0;
-			while (XXX != 0 && RR != R && F < MaxVenom) {
+			while (XXX != 0 && RR != R && F < maxVenom) {
 				RR = R;
 				XXX *= XX;
 				F *= (P++ * P++); U = -U;
@@ -945,8 +955,8 @@ namespace Wholemy {
 				var R = 0.0;
 				if (Venom > 0) {
 					var Int = BugInt.DivMod(Numer, Venom, out var Num);
-					Numer = Num * MaxVenom / Venom;
-					var Zeros = MaxDepth - Numer.Digits;
+					Numer = Num * maxVenom / Venom;
+					var Zeros = maxDepth - Numer.Digits;
 					R = Numer.ToDouble();
 					while (Zeros-- > 0) {
 						R /= 10;
