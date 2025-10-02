@@ -1,4 +1,4 @@
-namespace Wholemy {
+﻿namespace Wholemy {
 	/// <summary>Большое целое число)</summary>
 	public struct BugInt {
 		#region #field# Count 

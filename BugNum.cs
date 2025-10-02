@@ -1,4 +1,4 @@
-namespace Wholemy {
+﻿namespace Wholemy {
 	/// <summary>
 	/// Большое дробное число, на базе делимого и делителя)
 	/// </summary>
@@ -142,9 +142,9 @@ namespace Wholemy {
 		#endregion
 		#region #new# (#string # Value) 
 		public BugNum(string Value) {
-			if (Value == null) { this.Venom = 0; this.Numer = 0; return; }
-			var Length = Value.Length;
+			if (Value == null || Value.Length == 0) { this.Venom = 0; this.Numer = 0; return; }
 			char Char;
+			var Length = Value.Length;
 			if (Length == 3) {
 				Char = Value[0];
 				if (Char == 'n' || Char == 'N') {
@@ -165,25 +165,22 @@ namespace Wholemy {
 				}
 			}
 			var Chars = new char[Length];
-			var dot = -1;
+			var Split = -1;
 			var Count = 0;
 			for (var Index = 0; Index < Length; Index++) {
 				Char = Value[Index];
 				if (Char >= '0' && Char <= '9') {
 					Chars[Count++] = Char;
-				} else if (dot == -1 && (Char == '.' || Char == ',')) {
-					dot = Count;
+				} else if (Split == -1 && (Char == '.' || Char == ',')) {
+					Split = Count;
 				}
 			}
-			while (Count > 0) { if(Chars[Count-1] == '0') Count--; else break; }
+			while (Count > 0) { if (Chars[Count - 1] == '0') Count--; else break; }
 			if (Count == 0) { this.Venom = 0; this.Numer = 0; return; }
-			if (dot == -1) { this.Numer = new BugInt(Value); this.Venom = 1; return; }
-			var Depth = Count - dot;
-			if (Depth > maxDepth) { Depth = maxDepth; Count = Depth + dot; }
-			var Numer = new BugInt(new string(Chars, 0, Count));
-			var Venom = BugInt.Pow(10, Depth);
-			this.Numer = Numer;
-			this.Venom = Venom;
+			if (Split == -1) { this.Numer = new BugInt(new string(Chars, 0, Count)); this.Venom = 1; return; }
+			var Depth = Count - Split;
+			if (Depth > maxDepth) { Depth = maxDepth; Count = Depth + Split; }
+			this.Numer = new BugInt(new string(Chars, 0, Count)); this.Venom = BugInt.Pow(10, Depth);
 		}
 		#endregion
 		#region #property# GcdNum 
@@ -336,14 +333,14 @@ namespace Wholemy {
 			return new BugNum(numerator3, denominator2);
 		}
 		#endregion
-		#region #implicit operator# (#double # value) 
+		#region #implicit operator# (#double # Value) 
 		#region #through# 
 #if TRACE
 		[System.Diagnostics.DebuggerStepThrough]
 #endif
 		#endregion
-		public static implicit operator BugNum(double value) {
-			return new BugNum(value);
+		public static implicit operator BugNum(double Value) {
+			return new BugNum(Value);
 		}
 		#endregion
 		#region #new# (Value) 
@@ -375,9 +372,20 @@ namespace Wholemy {
 		public BugNum(double Value) {
 			var Minus = false;
 			if (Value < 0) { Value = -Value; Minus = true; }
-			var Int = (ulong)Value;
-			var Num = new BugInt(Int);
-			Value -= Int;
+			var Num = new BugInt(0);
+			var Cnt = 0;
+			while (Value >= 1) {
+				Value /= 10;
+				Cnt++;
+			}
+			while (Cnt > 0) {
+				Value *= 10;
+				var Int = (int)Value;
+				Num *= 10;
+				Num += Int;
+				Value -= Int;
+				Cnt--;
+			}
 			var Pow = 0;
 			while (Value > 0) {
 				Pow++;
