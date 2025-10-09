@@ -1142,36 +1142,41 @@
 				}
 				if (A != 0u) OArray[OCount++] = A;
 			} else {
-				if (LCount < RCount) {
-					OMinus = !OMinus;
-					LCount = RCount; RCount = OCount;
-					LArray = RArray; RArray = OArray;
-				} else if (LCount == RCount) {
+				var LBelow = false;
+				if (LCount < RCount) { LBelow = true; } else if (LCount == RCount) {
 					while (--LCount >= 0) {
-						var LValue = LArray[LCount];
-						var RValue = RArray[LCount];
-						if (LValue < RValue) {
-							OMinus = !OMinus;
-							LCount = RCount; RCount = OCount;
-							LArray = RArray; RArray = OArray;
-							break;
-						} else if (LValue > RValue) {
-							break;
-						}
+						var LValue = LArray[LCount]; var RValue = RArray[LCount];
+						if (LValue != RValue) { if (LValue < RValue) LBelow = true; break; }
 					}
 					LCount = RCount;
 				}
-				if (OCount < LCount) { OCount = LCount; }
-				OArray = new uint[OCount];
-				OCount = 0;
-				while (OCount < LCount || OCount < RCount) {
-					long aa = 0;
-					if (OCount < LCount) aa = LArray[OCount];
-					if (OCount < RCount) aa -= RArray[OCount];
-					aa -= A;
-					A = (uint)aa;
-					OArray[OCount++] = A;
-					A = (uint)(-(int)(aa >> 32));
+				if (LBelow) {
+					if (OCount < LCount) { OCount = LCount; }
+					OArray = new uint[OCount];
+					OCount = 0;
+					while (OCount < RCount) {
+						long aa = 0;
+						if (OCount < RCount) aa = RArray[OCount];
+						if (OCount < LCount) aa -= LArray[OCount];
+						aa -= A;
+						A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
+					OMinus = !OMinus;
+				} else {
+					if (OCount < LCount) { OCount = LCount; }
+					OArray = new uint[OCount];
+					OCount = 0;
+					while (OCount < LCount) {
+						long aa = 0;
+						if (OCount < LCount) aa = LArray[OCount];
+						if (OCount < RCount) aa -= RArray[OCount];
+						aa -= A;
+						A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
 				}
 			}
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
@@ -1208,17 +1213,30 @@
 				}
 				if (A != 0u) OArray[OCount++] = A;
 			} else {
-				if (OCount < LCount) { OCount = LCount; }
-				OArray = new uint[OCount];
-				OCount = 0;
-				while (OCount < LCount) {
+				if (LCount == 1 && LArray[0] < R) {
+					OArray = new uint[1];
+					OCount = 0;
 					long aa = 0;
-					if (OCount < LCount) aa = LArray[OCount];
-					if (OCount < 1) aa -= R;
+					if (OCount < 1) aa = R;
+					if (OCount < LCount) aa -= LArray[0];
 					aa -= A;
 					A = (uint)aa;
 					OArray[OCount++] = A;
 					A = (uint)(-(int)(aa >> 32));
+					OMinus = !OMinus;
+				} else {
+					if (OCount < LCount) { OCount = LCount; }
+					OArray = new uint[OCount];
+					OCount = 0;
+					while (OCount < LCount) {
+						long aa = 0;
+						if (OCount < LCount) aa = LArray[OCount];
+						if (OCount < 1) aa -= R;
+						aa -= A;
+						A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
 				}
 			}
 			while (OCount > 0 && OArray[OCount - 1] == 0) { OCount--; }
@@ -1244,41 +1262,42 @@
 			var OMinus = LMinus;
 			uint[] OArray = LArray;
 			uint A = 0u;
-			if (LCount < RCount) {
-				LCount = RCount; RCount = OCount;
-				LArray = RArray; RArray = OArray;
-				LMinus = RMinus; RMinus = LMinus;
-				OMinus = !OMinus;
-			} else if (LCount == RCount) {
-				while (--LCount >= 0) {
-					var LValue = LArray[LCount];
-					var RValue = RArray[LCount];
-					if (LValue < RValue) {
-						LCount = RCount; RCount = OCount;
-						LArray = RArray; RArray = OArray;
-						LMinus = RMinus; RMinus = LMinus;
-						OMinus = !OMinus;
-						break;
-					} else if (LValue > RValue) break;
-				}
-				LCount = RCount;
-			}
 			if (LMinus == RMinus) {
-				if (OCount < LCount) { OCount = LCount; }
-				OArray = new uint[OCount];
-				OCount = 0;
-				while (OCount < LCount || OCount < RCount) {
-					long aa = 0;
-					if (OCount < LCount) aa = LArray[OCount];
-					if (OCount < RCount) aa -= RArray[OCount];
-					aa -= A;
-					A = (uint)aa;
-					OArray[OCount++] = A;
-					A = (uint)(-(int)(aa >> 32));
+				var LBelow = false;
+				if (LCount < RCount) { LBelow = true; } else if (LCount == RCount) {
+					while (--LCount >= 0) {
+						var LValue = LArray[LCount]; var RValue = RArray[LCount];
+						if (LValue != RValue) { if (LValue < RValue) LBelow = true; break; }
+					}
+					LCount = RCount;
+				}
+				if (LBelow) {
+					OArray = new uint[RCount];
+					OCount = 0;
+					while (OCount < RCount) {
+						long aa = 0;
+						if (OCount < RCount) aa = RArray[OCount];
+						if (OCount < LCount) aa -= LArray[OCount];
+						aa -= A; A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
+					OMinus = !OMinus;
+				} else {
+					OArray = new uint[LCount];
+					OCount = 0;
+					while (OCount < LCount) {
+						long aa = 0;
+						if (OCount < LCount) aa = LArray[OCount];
+						if (OCount < RCount) aa -= RArray[OCount];
+						aa -= A; A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
 				}
 			} else {
-				if (LMinus) OMinus = !OMinus;
-				if (OCount < LCount) { OCount = LCount; }
+				OCount = RCount;
+				if (RCount < LCount) { OCount = LCount; }
 				OArray = new uint[OCount + 1];
 				OCount = 0;
 				while (OCount < LCount || OCount < RCount) {
@@ -1313,20 +1332,33 @@
 			uint[] OArray = LArray;
 			uint A = 0u;
 			if (LMinus == RMinus) {
-				if (OCount < LCount) { OCount = LCount; }
-				OArray = new uint[OCount];
-				OCount = 0;
-				while (OCount < LCount) {
+				if (LCount == 1 && LArray[0] < R) {
+					OArray = new uint[1];
+					OCount = 0;
 					long aa = 0;
-					if (OCount < LCount) aa = LArray[OCount];
-					if (OCount < 1) aa -= R;
+					if (OCount < 1) aa = R;
+					if (OCount < LCount) aa -= LArray[OCount];
 					aa -= A;
 					A = (uint)aa;
 					OArray[OCount++] = A;
 					A = (uint)(-(int)(aa >> 32));
+					OMinus = !OMinus;
+				} else {
+					OArray = new uint[LCount];
+					OCount = 0;
+					while (OCount < LCount) {
+						long aa = 0;
+						if (OCount < LCount) aa = LArray[OCount];
+						if (OCount < 1) aa -= R;
+						aa -= A;
+						A = (uint)aa;
+						OArray[OCount++] = A;
+						A = (uint)(-(int)(aa >> 32));
+					}
 				}
 			} else {
-				if (LMinus) OMinus = !OMinus;
+				//if (LMinus) OMinus = !OMinus;
+				OCount = 1;
 				if (OCount < LCount) { OCount = LCount; }
 				OArray = new uint[OCount + 1];
 				OCount = 0;

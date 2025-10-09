@@ -18,6 +18,9 @@
 		public static readonly BugNum Nan = new BugNum();
 		public static readonly BugNum Pos = new BugNum() { Numer = 1 };
 		public static readonly BugNum Neg = new BugNum() { Numer = -1 };
+		#region #get# IsVal 
+		public bool IsVal => Venom >= 1;
+		#endregion
 		#region #get# IsNan 
 		/// <summary>Возвращает истину если значение не задано)</summary>
 		#region #invisible# 
@@ -183,20 +186,24 @@
 			var Chars = new char[Length];
 			var Split = -1;
 			var Count = 0;
+			var Minus = "";
 			for (var Index = 0; Index < Length; Index++) {
 				Char = Value[Index];
-				if (Char >= '0' && Char <= '9') {
+				if(Char == '-'&& Count==0) {
+					Minus = "-";
+				} else if (Char >= '0' && Char <= '9') {
 					Chars[Count++] = Char;
 				} else if (Split == -1 && (Char == '.' || Char == ',')) {
 					Split = Count;
 				}
 			}
-			while (Count > 0) { if (Chars[Count - 1] == '0') Count--; else break; }
 			if (Count == 0) { this.Venom = 0; this.Numer = 0; return; }
-			if (Split == -1) { this.Numer = new BugInt(new string(Chars, 0, Count)); this.Venom = 1; return; }
+			if (Split == -1) { this.Numer = new BugInt(Minus+new string(Chars, 0, Count)); this.Venom = 1; return; }
 			var Depth = Count - Split;
+			while (Count > 0 && Depth > 0) { if (Chars[Count - 1] == '0') { Count--; Depth--; } else break; }
+			if (Depth == 0) { this.Numer = new BugInt(Minus + new string(Chars, 0, Count)); this.Venom = 1; return; }
 			if (Depth > maxDepth) { Depth = maxDepth; Count = Depth + Split; }
-			this.Numer = new BugInt(new string(Chars, 0, Count)); this.Venom = BugInt.Pow(10, Depth);
+			this.Numer = new BugInt(Minus + new string(Chars, 0, Count)); this.Venom = BugInt.Pow(10, Depth);
 		}
 		#endregion
 		#region #property# GcdNum 
@@ -663,17 +670,17 @@
 		public static BugNum TAtanOfTan(BugNum X) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
-			var XXXX = X;
-			var L = 0;
+			var RX = X;
+			var L = false;
 			var Y = 0;
 			BugNum YY = 0;
 			BugNum R = 0;
-			if (X >= 2) { L = -1; X = 1.0 / X; goto Next; }
+			if (X >= 2) { L = true; X = 1.0 / X; goto Next; }
 			Y = (int)(X * 8);
 			if (Y < 0) Y++;
 			var XX = Y / new BugNum(8);
 			X = (X - XX) / (X * XX + 1);
-			Next:
+		Next:
 			XX = X * X;
 			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
 			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
@@ -682,18 +689,18 @@
 				X = Y * new BugNum(1, 8);
 				Y = 0; goto Next;
 			}
-			if (L != 0) R = PId2 - R;
+			if (L) R = PId2 - R;
 			var I = new BugNum(1, 10);
 			var c = 5u;
 			var b = 3u;
 			var a = 1u;
 			var T = TOfTan(R);
 			var P = R;
-			while (T != XXXX) {
-				if (T < XXXX) {
+			while (T != RX) {
+				if (T < RX) {
 					var RI = R + I * c;
 					var TT = TOfTan(RI);
-					if (TT > XXXX) {
+					if (TT > RX) {
 						if (c == 1) {
 							I /= 10; c = 5; b = 3;
 						} else { c = b; b = a; }
@@ -704,7 +711,7 @@
 				} else {
 					var RI = R - I * c;
 					var TT = TOfTan(RI);
-					if (TT < XXXX) {
+					if (TT < RX) {
 						if (c == 1) {
 							I /= 10; c = 5; b = 3;
 						} else { c = b; b = a; }
@@ -723,7 +730,7 @@
 		public static BugNum TOfTan(BugNum X) {
 			var S = false;
 			BugNum C = 0;
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
@@ -764,28 +771,29 @@
 		#endregion
 		#region #method# TAtan(X) 
 		/// <summary>Функция возвращает обратный тангенс угла)</summary>
+		[System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
 		public static BugNum TAtan(BugNum X) {
 			var M = false;
 			if (X < 0) { X = -X; M = true; }
-			var L = 0;
+			var L = false;
 			var Y = 0;
 			BugNum YY = 0;
 			BugNum R = 0;
-			if (X >= 2) { L = -1; X = 1.0 / X; goto Next; }
+			if (X >= 2) { L = true; X = 1.0 / X; goto Next; }
 			Y = (int)(X * 8);
 			if (Y < 0) Y++;
 			var XX = Y / new BugNum(8);
 			X = (X - XX) / (X * XX + 1);
-			Next:
+		Next:
 			XX = X * X;
 			var C = (((13852575 * XX + 216602100) * XX + 891080190) * XX + 1332431100) * XX + 654729075;
 			var B = ((((893025 * XX + 49116375) * XX + 425675250) * XX + 1277025750) * XX + 1550674125) * XX + 654729075;
-			R += (C / B)*X;
+			R += (C / B) * X;
 			if (Y > 0) {
 				X = Y * new BugNum(1, 8);
 				Y = 0; goto Next;
 			}
-			if (L != 0) R = PId2 - R;
+			if (L) R = PId2 - R;
 			return M ? -R : R;
 		}
 		#endregion
@@ -886,7 +894,7 @@
 		public static void TSinCos(BugNum X, out BugNum Sin, out BugNum Cos) {
 			var S = false;
 			var C = new BugNum(0);
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
@@ -929,7 +937,7 @@
 		public static BugNum TTan(BugNum X) {
 			var S = false;
 			BugNum C = 0;
-			Next:
+		Next:
 			if (S) X -= PId2;
 			var x = X;
 			if (x < 0) { x = -x; }
