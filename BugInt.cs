@@ -1,5 +1,8 @@
 ﻿namespace Wholemy {
 	/// <summary>Большое целое число)</summary>
+	/// <remarks>
+	/// Внимание! Основные операторы числа отличаются от принятых в C#) Знаки -(neg) +(pos) !(not) работают как должны были бы)
+	/// </remarks>
 	public struct BugInt {
 		#region #field# Count 
 		/// <summary>Количество элементов в массиве) Содержит значение, если массив не указан)</summary>
@@ -373,7 +376,7 @@
 		#region #operator# * (#struct # L, #int # R) 
 		public static BugInt operator *(BugInt L, int R) {
 			var Minus = false;
-			if (R < 0) { Minus = true; R = +R; }
+			if (R < 0) { Minus = true; R = -R; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
@@ -413,7 +416,7 @@
 		public static BugInt operator *(BugInt L, BugInt R) {
 			var Minus = false;
 			var RCount = R.Count;
-			if (RCount < 0) { Minus = true; RCount = +RCount; }
+			if (RCount < 0) { Minus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
 			var LCount = L.Count;
@@ -512,7 +515,7 @@
 		public static BugInt operator /(BugInt L, int R) {
 			if (R == 0) { throw new System.DivideByZeroException(); }
 			var Minus = false;
-			if (R < 0) { R = +R; Minus = true; }
+			if (R < 0) { R = -R; Minus = true; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
@@ -555,7 +558,7 @@
 		public static BugInt DivMod(BugInt L, int R, out int M) {
 			if (R == 0) { throw new System.DivideByZeroException(); }
 			var Minus = false;
-			if (R < 0) { Minus = true; R = +R; }
+			if (R < 0) { Minus = true; R = -R; }
 			if (R == 1) { M = 0; if (Minus) { return new BugInt(L.Value, -L.Count); } return L; }
 			var LCount = L.Count;
 			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
@@ -617,7 +620,7 @@
 		public static BugInt DivMod(BugInt L, BugInt R, out BugInt M) {
 			var RCount = R.Count;
 			var Minus = false;
-			if (RCount < 0) { RCount = +RCount; Minus = true; }
+			if (RCount < 0) { RCount = -RCount; Minus = true; }
 			var RArray = R.Value;
 			if (RCount == 0) { throw new System.DivideByZeroException(); }
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
@@ -625,7 +628,7 @@
 			var OCount = 0;
 			uint[] OArray = null;
 			var LCount = L.Count;
-			if (LCount < 0) { Minus = Minus ? false : true; LCount = +LCount; }
+			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(LArray, -LCount); } return L; }
@@ -741,12 +744,12 @@
 		public static BugInt DivModSub(BugInt L, BugInt R, out BugInt M) {
 			var Minus = false;
 			var RCount = R.Count;
-			if (RCount < 0) { RCount = +RCount; Minus = true; }
+			if (RCount < 0) { RCount = -RCount; Minus = true; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
 			var RValue = R.Value[RCount - 1];
 			var LCount = L.Count;
-			if (LCount < 0) { Minus = Minus ? false : true; LCount = +LCount; }
+			if (LCount < 0) { Minus = Minus ? false : true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			if (RCount == 1 && RValue == 1) { M = 0; if (Minus) { return new BugInt(LArray, -LCount); } return L; }
@@ -887,7 +890,7 @@
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = LCount < 0 ? -1 : 1; }
 			if (R != 0) {
 				if (R < 0) {
-					return LCount != -1 || LArray[0] != (+R);
+					return LCount != -1 || LArray[0] != (-R);
 				} else { return LCount != 1 || LArray[0] != R; }
 			} else { return LCount != 0; }
 		}
@@ -895,7 +898,7 @@
 			var LCount = L.Count;
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = LCount < 0 ? -1 : 1; }
-			if (R != 0) { if (R < 0) { return LCount == -1 && LArray[0] == (+R); } else { return LCount == 1 && LArray[0] == R; } } else { return LCount == 0; }
+			if (R != 0) { if (R < 0) { return LCount == -1 && LArray[0] == (-R); } else { return LCount == 1 && LArray[0] == R; } } else { return LCount == 0; }
 		}
 		#endregion
 		#region #operator# !== (#struct # L, #uint # R) 
@@ -917,13 +920,13 @@
 			var RCount = R.Count;
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = RCount < 0 ? -1 : 1; }
-			if (L != 0) { if (L < 0) { return RCount != -1 || RArray[0] != (+L); } else { return RCount != 1 || RArray[0] != L; } } else { return RCount != 0; }
+			if (L != 0) { if (L < 0) { return RCount != -1 || RArray[0] != (-L); } else { return RCount != 1 || RArray[0] != L; } } else { return RCount != 0; }
 		}
 		public static bool operator ==(int L, BugInt R) {
 			var RCount = R.Count;
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = RCount < 0 ? -1 : 1; }
-			if (L != 0) { if (L < 0) { return RCount == -1 && RArray[0] == (+L); } else { return RCount == 1 && RArray[0] == L; } } else { return RCount == 0; }
+			if (L != 0) { if (L < 0) { return RCount == -1 && RArray[0] == (-L); } else { return RCount == 1 && RArray[0] == L; } } else { return RCount == 0; }
 		}
 		#endregion
 		#region #operator# !== (#uint # L, #struct # R) 
@@ -1116,11 +1119,11 @@
 			var LCount = L.Count;
 			if (LCount == 0) return R;
 			var RMinus = false;
-			if (RCount < 0) { RMinus = true; RCount = +RCount; }
+			if (RCount < 0) { RMinus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
 			var LMinus = false;
-			if (LCount < 0) { LMinus = true; LCount = +LCount; }
+			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			var OCount = LCount;
@@ -1188,7 +1191,7 @@
 			var LCount = L.Count;
 			if (LCount == 0) return R;
 			var RMinus = false;
-			if (R < 0) { RMinus = true; R = +R; }
+			if (R < 0) { RMinus = true; R = -R; }
 			var LMinus = false;
 			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
@@ -1248,11 +1251,11 @@
 			var LCount = L.Count;
 			if (LCount == 0) return new BugInt(R.Value, -RCount);
 			var RMinus = false;
-			if (RCount < 0) { RMinus = true; RCount = +RCount; }
+			if (RCount < 0) { RMinus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
 			var LMinus = false;
-			if (LCount < 0) { LMinus = true; LCount = +LCount; }
+			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			var OCount = LCount;
@@ -1319,7 +1322,7 @@
 			var LCount = L.Count;
 			if (LCount == 0) return new BugInt(-1);
 			var RMinus = false;
-			if (R < 0) { RMinus = true; R = +R; }
+			if (R < 0) { RMinus = true; R = -R; }
 			var LMinus = false;
 			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
@@ -1459,12 +1462,12 @@
 		private void Mul(BugInt L, BugInt R) {
 			var RCount = R.Count;
 			var RMinus = false;
-			if (RCount < 0) { RMinus = true; RCount = +RCount; }
+			if (RCount < 0) { RMinus = true; RCount = -RCount; }
 			var RArray = R.Value;
 			if (RArray == null && RCount != 0) { RArray = new uint[] { (uint)RCount }; RCount = 1; }
 			var LCount = L.Count;
 			var LMinus = false;
-			if (LCount < 0) { LMinus = true; LCount = +LCount; }
+			if (LCount < 0) { LMinus = true; LCount = -LCount; }
 			var LArray = L.Value;
 			if (LArray == null && LCount != 0) { LArray = new uint[] { (uint)LCount }; LCount = 1; }
 			uint[] OArray = this.Value;
